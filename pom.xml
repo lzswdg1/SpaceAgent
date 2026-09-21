@@ -29,24 +29,24 @@
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spring.boot.version>3.5.13</spring.boot.version>
+        <spring.boot.version>4.1.1</spring.boot.version>
         <maven.compiler.release>${java.version}</maven.compiler.release>
         <maven.compiler.parameters>true</maven.compiler.parameters>
-        <mybatis.version>3.0.4</mybatis.version>
-        <flyway.version>11.8.2</flyway.version>
-        <jjwt.version>0.12.6</jjwt.version>
-        <langchain4j.version>1.13.1</langchain4j.version>
-        <shedlock.version>6.3.1</shedlock.version>
-        <lombok.version>1.18.38</lombok.version>
-        <postgresql.version>42.7.7</postgresql.version>
+        <mybatis.version>4.1.0</mybatis.version>
+        <flyway.version>13.7.0</flyway.version>
+        <jjwt.version>0.13.0</jjwt.version>
+        <langchain4j.version>1.20.0</langchain4j.version>
+        <shedlock.version>7.10.1</shedlock.version>
+        <lombok.version>1.18.48</lombok.version>
+        <postgresql.version>42.7.13</postgresql.version>
         <mockito.version>5.17.0</mockito.version>
-        <springdoc.version>2.8.17</springdoc.version>
-        <minio.version>9.0.1</minio.version>
-        <okhttp.version>5.3.2</okhttp.version>
-        <testcontainers.version>1.21.4</testcontainers.version>
-        <jacoco.version>0.8.13</jacoco.version>
-        <json-schema-validator.version>2.0.4</json-schema-validator.version>
-        <jsoup.version>1.22.2</jsoup.version>
+        <springdoc.version>3.1.1</springdoc.version>
+        <minio.version>9.0.3</minio.version>
+        <okhttp.version>5.5.0</okhttp.version>
+        <testcontainers.version>2.0.5</testcontainers.version>
+        <jacoco.version>0.8.15</jacoco.version>
+        <json-schema-validator.version>3.0.7</json-schema-validator.version>
+        <jsoup.version>1.23.2</jsoup.version>
         <totp.version>1.7.1</totp.version>
         <jacoco.minimum.line.coverage>0.30</jacoco.minimum.line.coverage>
         <argLine></argLine>
@@ -186,7 +186,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.13.0</version>
+                    <version>3.16.0</version>
                     <configuration>
                         <release>${java.version}</release>
                         <proc>full</proc>
@@ -207,7 +207,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.2.5</version>
+                    <version>3.6.0</version>
                     <configuration>
                         <argLine>@{argLine} -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar -Xshare:off</argLine>
                     </configuration>

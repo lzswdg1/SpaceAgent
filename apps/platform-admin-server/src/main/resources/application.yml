@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: platform-admin-server
+  datasource:
+    url: ${ADMIN_DB_URL:jdbc:postgresql://127.0.0.1:5436/spaceagent_admin}
+    username: ${ADMIN_DB_USERNAME:spaceagent_admin}
+    password: ${ADMIN_DB_PASSWORD:spaceagent-admin-dev-password-change-me}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/platform-admin-server
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+server:
+  address: ${ADMIN_SERVER_ADDRESS:127.0.0.1}
+  port: ${ADMIN_SERVER_PORT:9400}
+  shutdown: graceful
+  forward-headers-strategy: framework
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db,adminSecurity,platformHandshake
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+admin:
+  release:
+    mode: ${ADMIN_RELEASE_MODE:${PLATFORM_RELEASE_MODE:development}}
+  security:
+    issuer: ${ADMIN_JWT_ISSUER:spaceagent-platform-admin}
+    audience: ${ADMIN_JWT_AUDIENCE:spaceagent-platform-admin-api}
+    jwt-secret: ${ADMIN_JWT_SECRET:local-dev-admin-jwt-secret-change-in-production}
+    access-token-minutes: ${ADMIN_ACCESS_TOKEN_MINUTES:10}
+    refresh-token-days: ${ADMIN_REFRESH_TOKEN_DAYS:7}
+    max-login-attempts: ${ADMIN_MAX_LOGIN_ATTEMPTS:5}
+    cookie-secure: ${ADMIN_COOKIE_SECURE:true}
+  bootstrap:
+    login-name: ${ADMIN_LOGIN:${ADMIN_BOOTSTRAP_LOGIN:}}
+    display-name: ${ADMIN_DISPLAY_NAME:${ADMIN_BOOTSTRAP_DISPLAY_NAME:Platform Administrator}}
+    password: ${ADMIN_PASSWORD:${ADMIN_BOOTSTRAP_PASSWORD:}}
+  platform-client:
+    base-url: ${ADMIN_PLATFORM_CLIENT_BASE_URL:http://127.0.0.1:9000}
+    issuer: ${ADMIN_PLATFORM_CLIENT_JWT_ISSUER:spaceagent-platform-admin}
+    audience: ${ADMIN_PLATFORM_CLIENT_JWT_AUDIENCE:spaceagent-platform-admin-internal}
+    service-id: ${ADMIN_PLATFORM_CLIENT_SERVICE_ID:platform-admin-server}
+    jwt-secret: ${ADMIN_PLATFORM_CLIENT_JWT_SECRET:local-dev-system-admin-jwt-secret-change-me}
+    token-seconds: ${ADMIN_PLATFORM_CLIENT_TOKEN_SECONDS:45}
+    connect-timeout-seconds: ${ADMIN_PLATFORM_CLIENT_CONNECT_TIMEOUT_SECONDS:3}
+    request-timeout-seconds: ${ADMIN_PLATFORM_CLIENT_REQUEST_TIMEOUT_SECONDS:10}
+    maximum-response-bytes: ${ADMIN_PLATFORM_CLIENT_MAXIMUM_RESPONSE_BYTES:2000000}
+    allow-insecure-local: ${ADMIN_PLATFORM_CLIENT_ALLOW_INSECURE_LOCAL:false}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.local/contracts/platform-admin/v1/user-command.schema.json",
+  "title": "Platform administration user command result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["commandId", "operation", "state", "result", "createdAt", "updatedAt"],
+  "properties": {
+    "commandId": {"type": "string", "format": "uuid"},
+    "operation": {
+      "enum": ["USER_CREATE", "USER_UPDATE", "USER_SESSIONS_REVOKE", "USER_PASSWORD_RESET", "USER_SUSPEND", "USER_RESTORE", "USER_DELETION_PREFLIGHT", "USER_DELETION_REQUEST"]
+    },
+    "targetType": {"const": "PLATFORM_USER"},
+    "targetId": {"type": ["string", "null"], "maxLength": 36},
+    "targetUserId": {"type": ["string", "null"], "maxLength": 36},
+    "state": {"enum": ["RECEIVED", "DISPATCHING", "SUCCEEDED", "FAILED", "UNKNOWN"]},
+    "result": {"type": "object"},
+    "safeErrorCode": {"type": ["string", "null"], "maxLength": 80},
+    "activationToken": {
+      "type": ["string", "null"],
+      "maxLength": 128,
+      "description": "Present only on the first successful USER_CREATE response; never journaled or replayed."
+    },
+    "passwordResetToken": {
+      "type": ["string", "null"], "maxLength": 128,
+      "description": "Only on first successful USER_PASSWORD_RESET response; expires in 15 minutes. Never journaled or replayed. Administrator must arrange secure handoff; no email delivery is implied."
+    },
+    "createdAt": {"type": "string", "format": "date-time"},
+    "updatedAt": {"type": "string", "format": "date-time"},
+    "completedAt": {"type": ["string", "null"], "format": "date-time"}
+  }
+}

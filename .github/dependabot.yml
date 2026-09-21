@@ -1,0 +1,50 @@
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule: {interval: weekly}
+    groups:
+      maven-runtime:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /
+    schedule: {interval: weekly}
+    groups:
+      web-workspaces:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /services/multi-agent-orchestrator
+    schedule: {interval: weekly}
+    groups:
+      orchestrator:
+        patterns: ['*']
+  - package-ecosystem: gomod
+    directory: /cli
+    schedule: {interval: weekly}
+    groups:
+      cli:
+        patterns: ['*']
+  - package-ecosystem: pip
+    directory: /workers/sandbox-worker
+    schedule: {interval: weekly}
+    groups:
+      sandbox-worker:
+        patterns: ['*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: {interval: weekly}
+  - package-ecosystem: docker
+    directory: /apps/platform-server
+    schedule: {interval: weekly}
+  - package-ecosystem: docker
+    directory: /apps/platform-admin-server
+    schedule: {interval: weekly}
+  - package-ecosystem: docker
+    directory: /apps/web
+    schedule: {interval: weekly}
+  - package-ecosystem: docker
+    directory: /apps/admin-web
+    schedule: {interval: weekly}
+  - package-ecosystem: docker
+    directory: /workers/sandbox-worker
+    schedule: {interval: weekly}

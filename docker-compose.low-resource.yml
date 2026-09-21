@@ -1,0 +1,113 @@
+# Optional overlay only. Keep all normal profiles/components; select web/admin/sandbox, not heavy profiles.
+# Use after base/images/release overlays. Build/publish images outside this server.
+x-small-log: &small-log
+  driver: local
+  options: {max-size: 10m, max-file: "3"}
+
+services:
+  postgres:
+    ports: !override ["127.0.0.1:${POSTGRES_HOST_PORT:-5436}:5432"]
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+    logging: *small-log
+    command: [postgres, -c, shared_buffers=128MB, -c, work_mem=2MB, -c, maintenance_work_mem=64MB,
+              -c, max_connections=40, -c, autovacuum_max_workers=1]
+  database-init:
+    mem_limit: 64m
+    cpus: 0.25
+    pids_limit: 32
+    logging: *small-log
+  admin-database-init:
+    mem_limit: 64m
+    cpus: 0.25
+    pids_limit: 32
+    logging: *small-log
+    depends_on:
+      database-init: {condition: service_completed_successfully}
+    environment:
+      ADMIN_DB_PASSWORD: ${ADMIN_DB_PASSWORD:?Configure a distinct administrator database password}
+  platform-server:
+    ports: !override ["127.0.0.1:9000:9000"]
+    mem_limit: 1152m
+    cpus: 1.0
+    pids_limit: 256
+    logging: *small-log
+    entrypoint: [java, -Xms128m, -Xmx640m, -XX:ActiveProcessorCount=2, -jar, app.jar]
+    environment:
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "6"
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: "2"
+      SERVER_TOMCAT_THREADS_MAX: "32"
+      SERVER_TOMCAT_THREADS_MIN_SPARE: "5"
+      SERVER_TOMCAT_ACCEPT_COUNT: "50"
+      PLATFORM_ADMISSION_MAX_SSE_CONNECTIONS: "8"
+      PLATFORM_ADMISSION_MAX_SSE_CONNECTIONS_PER_USER: "2"
+      PLATFORM_ADMISSION_MAX_RATE_KEYS: "2000"
+      PLATFORM_SANDBOX_MODE: http
+      PLATFORM_KNOWLEDGE_VECTOR_STORE_MODE: pgvector
+      PLATFORM_KNOWLEDGE_PARSER_URI: ${PLATFORM_KNOWLEDGE_PARSER_URI:-}
+      PLATFORM_KNOWLEDGE_PARSER_ALLOW_PRIVATE_HTTP: ${PLATFORM_KNOWLEDGE_PARSER_ALLOW_PRIVATE_HTTP:-false}
+      PLATFORM_KNOWLEDGE_INDEX_INTAKE_ENABLED: ${PLATFORM_KNOWLEDGE_INDEX_INTAKE_ENABLED:-false}
+      PLATFORM_KNOWLEDGE_INDEX_WORKER_ENABLED: ${PLATFORM_KNOWLEDGE_INDEX_WORKER_ENABLED:-false}
+      PLATFORM_KNOWLEDGE_INDEXING_POLL_DELAY_MS: "5000"
+      PLATFORM_KNOWLEDGE_MAX_PENDING: ${PLATFORM_KNOWLEDGE_MAX_PENDING:-8}
+      PLATFORM_KNOWLEDGE_MAX_SOURCE_BYTES: ${PLATFORM_KNOWLEDGE_MAX_SOURCE_BYTES:-268435456}
+      PLATFORM_PROJECT_INTAKE_POLL_DELAY_MS: "5000"
+      PLATFORM_PROJECT_CODING_POLL_DELAY_MS: "5000"
+      PLATFORM_RUNTIME_CONTINUATION_POLL_DELAY_MS: "2000"
+      PLATFORM_RUNTIME_CONTINUATION_BATCH_SIZE: "1"
+      PLATFORM_INFERENCE_HEALTH_PROBES_ENABLED: "false"
+      PLATFORM_MCP_REGISTRY_WORKER_ENABLED: "false"
+      PLATFORM_MULTI_AGENT_ORCHESTRATOR_MODE: none
+      PLATFORM_CHAT_AUTOMATIC_PLANNING_ENABLED: "false"
+      PLATFORM_TOOLING_WEB_SEARCH_MODE: none
+      PLATFORM_RERANKER_MODE: none
+      PLATFORM_OBSERVABILITY_TRACING_ENABLED: "false"
+      PLATFORM_OBSERVABILITY_OTLP_ENABLED: "false"
+      PLATFORM_OBSERVABILITY_OPERATIONAL_METRICS_REFRESH_DELAY_MS: "60000"
+      PLATFORM_ARTIFACT_OBJECT_MAXIMUM_OBJECT_BYTES: "16777216"
+      PLATFORM_ARTIFACT_OBJECT_MAXIMUM_ACTIVE_STAGING_SESSIONS_PER_USER: "2"
+      PLATFORM_ARTIFACT_OBJECT_MAXIMUM_ACTIVE_STAGING_BYTES_PER_USER: "33554432"
+      PLATFORM_ARTIFACT_OBJECT_MAXIMUM_ACTIVE_STAGING_BYTES_PER_TENANT: "134217728"
+      PLATFORM_ARTIFACT_OBJECT_MAXIMUM_STORED_BYTES_PER_TENANT: ${ARTIFACT_OBJECT_MAXIMUM_STORED_BYTES_PER_TENANT:-1073741824}
+  platform-admin-server:
+    ports: !override ["127.0.0.1:${ADMIN_HOST_PORT:-9400}:9400"]
+    mem_limit: 512m
+    cpus: 0.3
+    pids_limit: 128
+    logging: *small-log
+    entrypoint: [java, -Xms64m, -Xmx256m, -XX:ActiveProcessorCount=1, -jar, app.jar]
+    environment:
+      ADMIN_DB_PASSWORD: ${ADMIN_DB_PASSWORD:?Configure the administrator database password}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET:?Configure a distinct administrator JWT secret}
+      ADMIN_LOGIN: ${ADMIN_LOGIN:?Configure the persistent administrator login}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Configure the persistent administrator password}
+      ADMIN_COOKIE_SECURE: "true"
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "2"
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: "1"
+      SERVER_TOMCAT_THREADS_MAX: "16"
+      ADMIN_PLATFORM_CLIENT_BASE_URL: ${ADMIN_PLATFORM_CLIENT_BASE_URL:?Configure the private HTTPS mTLS platform endpoint}
+  sandbox-worker:
+    mem_limit: 160m
+    cpus: 0.25
+    pids_limit: 64
+    logging: *small-log
+    environment:
+      SANDBOX_MAX_CONCURRENT_EXECUTIONS: "1"
+      SANDBOX_MAX_MEMORY_BYTES: "536870912"
+      SANDBOX_NANO_CPUS: "750000000"
+      SANDBOX_PIDS_LIMIT: "128"
+      SANDBOX_TMPFS_BYTES: "33554432"
+      PLATFORM_OBSERVABILITY_OTLP_ENABLED: "false"
+  web:
+    ports: !override ["127.0.0.1:${WEB_HOST_PORT:-8080}:80"]
+    mem_limit: 64m
+    cpus: 0.1
+    pids_limit: 32
+    logging: *small-log
+  admin-web:
+    ports: !override ["127.0.0.1:${ADMIN_WEB_HOST_PORT:-5174}:80"]
+    mem_limit: 64m
+    cpus: 0.1
+    pids_limit: 32
+    logging: *small-log

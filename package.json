@@ -1,0 +1,18 @@
+{
+  "name": "spaceagent-web-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "workspaces": [
+    "apps/web",
+    "apps/admin-web"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @spaceagent/web",
+    "build:admin": "npm run build --workspace @spaceagent/admin-web",
+    "dev": "npm run dev --workspace @spaceagent/web",
+    "dev:admin": "npm run dev --workspace @spaceagent/admin-web",
+    "test": "npm run test --workspace @spaceagent/web",
+    "test:admin": "npm run test --workspace @spaceagent/admin-web"
+  }
+}

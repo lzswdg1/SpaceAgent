@@ -1,0 +1,22 @@
+{
+  "contractVersion": "multi-agent/v1",
+  "requestId": "ma-req-provider",
+  "agentRunId": "run-provider",
+  "command": {
+    "kind": "MODEL_REQUESTED",
+    "payload": {
+      "modelPoolRef": "pool-1",
+      "logicalCallId": "multi-agent:supervisor:r7",
+      "messages": [
+        { "role": "system", "content": "Return one strict JSON decision." },
+        { "role": "user", "content": "Choose an eligible route." }
+      ],
+      "parameters": {
+        "temperature": 0,
+        "maxOutputTokens": 512,
+        "responseFormat": "json_object"
+      }
+    }
+  },
+  "orchestration": { "route": "model", "ephemeral": true }
+}

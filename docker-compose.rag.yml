@@ -1,0 +1,30 @@
+# Separate development/test dependency stack. No platform or existing PostgreSQL service is restarted.
+# Official 2.6.22 multi-architecture digest verified on 2026-09-14.
+services:
+  rag-milvus:
+    image: ${MILVUS_IMAGE:-milvusdb/milvus:v2.6.22@sha256:a8ac051e59eb084d41bd317ec51aac28553d664e91c43a806ccd6a1538abc1df}
+    profiles: [rag]
+    command: [milvus, run, standalone]
+    environment:
+      ETCD_USE_EMBED: "true"
+      ETCD_DATA_DIR: /var/lib/milvus/etcd
+      ETCD_CONFIG_PATH: /milvus/configs/embedEtcd.yaml
+      COMMON_STORAGETYPE: local
+      DEPLOY_MODE: STANDALONE
+      COMMON_SECURITY_AUTHORIZATIONENABLED: "true"
+      COMMON_SECURITY_DEFAULTROOTPASSWORD: ${MILVUS_BOOTSTRAP_PASSWORD:?Set a non-default local bootstrap password}
+    ports:
+      - "127.0.0.1:${MILVUS_HOST_PORT:-19530}:19530"
+      - "127.0.0.1:${MILVUS_HEALTH_PORT:-19091}:9091"
+    volumes:
+      - rag-milvus-data:/var/lib/milvus
+      - ./docker/rag/embedEtcd.yaml:/milvus/configs/embedEtcd.yaml:ro
+    healthcheck:
+      test: [CMD, curl, -f, http://localhost:9091/healthz]
+      interval: 10s
+      timeout: 5s
+      start_period: 90s
+      retries: 12
+    stop_grace_period: 30s
+volumes:
+  rag-milvus-data:

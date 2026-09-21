@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.dev/contracts/multi-agent/v1/orchestration-request.schema.json",
+  "title": "SpaceAgent Multi-Agent Orchestration Request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion", "requestId", "agentRunId", "organizationId", "userId",
+    "mode", "projectId", "taskId", "taskPlanId", "conversationId",
+    "agentRefs", "modelPoolRef", "context", "capabilities", "cursor", "limits"
+  ],
+  "properties": {
+    "contractVersion": { "const": "multi-agent/v1" },
+    "requestId": { "type": "string", "minLength": 1 },
+    "agentRunId": { "type": "string", "minLength": 1 },
+    "organizationId": { "type": "string", "minLength": 1 },
+    "userId": { "type": "string", "minLength": 1 },
+    "mode": { "enum": ["CHAT", "PROJECT"] },
+    "projectId": { "type": ["string", "null"] },
+    "taskId": { "type": ["string", "null"] },
+    "taskPlanId": { "type": ["string", "null"] },
+    "conversationId": { "type": "string", "minLength": 1 },
+    "agentRefs": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["agentId", "runConfigurationSnapshotId", "role"],
+        "properties": {
+          "agentId": { "type": "string", "minLength": 1 },
+          "runConfigurationSnapshotId": { "type": ["string", "null"] },
+          "role": { "type": "string", "minLength": 1, "maxLength": 80 }
+        }
+      }
+    },
+    "modelPoolRef": { "type": ["string", "null"] },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contextPackageId", "tokenBudget", "sources"],
+      "properties": {
+        "contextPackageId": { "type": "string", "minLength": 1 },
+        "tokenBudget": { "type": "integer", "minimum": 1 },
+        "sources": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "sourceId", "content", "priority"],
+            "properties": {
+              "type": { "type": "string", "minLength": 1 },
+              "sourceId": { "type": "string", "minLength": 1 },
+              "content": { "type": "string", "maxLength": 32000 },
+              "priority": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowedToolNames", "allowedSkillIds", "allowedMcpServerIds"],
+      "properties": {
+        "allowedToolNames": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "allowedSkillIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "allowedMcpServerIds": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "cursor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase", "checkpointId", "planStepId", "childTaskId"],
+      "properties": {
+        "phase": { "enum": ["planning", "execute", "handoff", "review", "awaiting_approval", "complete"] },
+        "checkpointId": { "type": ["string", "null"] },
+        "planStepId": { "type": ["string", "null"] },
+        "childTaskId": { "type": ["string", "null"] }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxDelegations", "maxParallelAgents", "maxDepth", "remainingTokenBudget"],
+      "properties": {
+        "maxDelegations": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "maxParallelAgents": { "type": "integer", "minimum": 1, "maximum": 32 },
+        "maxDepth": { "type": "integer", "minimum": 1, "maximum": 32 },
+        "remainingTokenBudget": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "reasoning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "round", "logicalCallId", "result"],
+      "allOf": [
+        {
+          "if": { "properties": { "round": { "const": 0 } }, "required": ["round"] },
+          "then": { "properties": { "result": { "type": "null" } } }
+        },
+        {
+          "if": { "properties": { "round": { "const": 1 } }, "required": ["round"] },
+          "then": { "properties": { "result": { "type": "object" } } }
+        }
+      ],
+      "properties": {
+        "mode": { "const": "PROVIDER" },
+        "round": { "enum": [0, 1] },
+        "logicalCallId": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "result": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["content", "inputTokens", "outputTokens", "selectedProviderId", "selectedModelId", "candidateSnapshotHash"],
+              "properties": {
+                "content": { "type": "string", "minLength": 1, "maxLength": 32000 },
+                "inputTokens": { "type": "integer", "minimum": 0 },
+                "outputTokens": { "type": "integer", "minimum": 0 },
+                "selectedProviderId": { "type": "string", "minLength": 1 },
+                "selectedModelId": { "type": "string", "minLength": 1 },
+                "candidateSnapshotHash": { "type": ["string", "null"] }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

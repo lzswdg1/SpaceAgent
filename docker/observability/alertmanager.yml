@@ -1,0 +1,22 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: local-control-plane
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+# The repository provides routing, grouping, silencing and the local Alertmanager UI without
+# assuming an operator's outbound channel or committing receiver credentials. Production mounts
+# a reviewed receiver configuration (email/PagerDuty/webhook/etc.) at this same path.
+receivers:
+  - name: local-control-plane
+
+inhibit_rules:
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity="warning"
+    equal: ['alertname']

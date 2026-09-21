@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  repository-identity:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Require final public repository identity
+        run: scripts/check-release-repository-identity.sh
+
+  build-images:
+    needs: repository-identity
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - service: platform-server
+            dockerfile: apps/platform-server/Dockerfile
+          - service: platform-admin-server
+            dockerfile: apps/platform-admin-server/Dockerfile
+          - service: sandbox-worker
+            dockerfile: workers/sandbox-worker/Dockerfile
+          - service: web
+            dockerfile: apps/web/Dockerfile
+          - service: admin-web
+            dockerfile: apps/admin-web/Dockerfile
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push Docker image with SBOM and provenance
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ steps.version.outputs.VERSION }}
+            ghcr.io/${{ github.repository }}/${{ matrix.service }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: mode=max
+          sbom: true
+
+      - name: Generate image SBOM artifact
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          image: ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ steps.version.outputs.VERSION }}
+          format: spdx-json
+          syft-version: v1.40.0
+          artifact-name: spaceagent-${{ matrix.service }}-${{ steps.version.outputs.VERSION }}.spdx.json
+          output-file: ${{ runner.temp }}/spaceagent-${{ matrix.service }}.spdx.json
+          upload-artifact: true
+          upload-release-assets: false
+
+# BuildKit SBOM/provenance and workflow artifacts are generated above. Release signing and GitHub
+# attestations require repository-specific permissions and must not be claimed until configured and tested.

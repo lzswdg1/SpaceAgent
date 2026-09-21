@@ -1,0 +1,2 @@
+package com.spaceagent.platform.artifact.domain;import java.time.Instant;
+public record Artifact(String id,String tenantId,String projectId,String taskId,String agentRunId,String workspaceId,ArtifactType type,String name,String contentRef,String contentHash,String summary,String metadataJson,Instant createdAt){public Artifact{if(id==null||id.isBlank()||tenantId==null||projectId==null||taskId==null||agentRunId==null||workspaceId==null||type==null||name==null||contentHash==null||createdAt==null)throw new IllegalArgumentException("Artifact fields are required");}}

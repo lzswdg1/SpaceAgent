@@ -1,0 +1,82 @@
+name: Bug report
+description: Report a reproducible SpaceAgent developer Beta defect
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve SpaceAgent. Do not include credentials, private repository content, personal data, database dumps, or unredacted production logs. Security vulnerabilities must be reported privately through the Security tab, not here.
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched existing issues for the same problem.
+          required: true
+        - label: This is not a security vulnerability or private incident report.
+          required: true
+        - label: I removed secrets and private data from this report.
+          required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Tag, commit SHA, or branch name that reproduces the issue.
+      placeholder: v0.x.y or abc1234
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Java business backend
+        - Administrator backend or client
+        - Tenant web client
+        - Multi-Agent orchestrator
+        - Sandbox worker
+        - CLI
+        - RAG or vector storage
+        - MCP or Provider integration
+        - Deployment or documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, architecture, Java/Node/Go/Python versions, deployment profile, and relevant non-secret configuration.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest deterministic sequence that reproduces the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Redacted evidence
+      description: Add relevant error codes, screenshots, traces, or logs after removing all sensitive data.
+      render: shell
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context

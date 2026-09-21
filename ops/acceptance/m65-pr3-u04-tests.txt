@@ -1,0 +1,23 @@
+# M65-PR3-U04 data lifecycle selection
+PlatformIdentityPostgresIntegrationTest
+PlatformOrganizationPostgresIntegrationTest
+PlatformAgentVersionPostgresTest
+PlatformProjectPostgresIntegrationTest
+PlatformTaskPlanPostgresIntegrationTest
+PlatformRuntimeCoordinationPostgresTest
+AutomationTriggerRepositoryPostgresTest
+ArtifactObjectRepositoryPostgresTest
+ArtifactObjectMaintenanceApplicationServiceTest
+ArtifactObjectCleanupPostgresTest
+KnowledgeWorkspaceCleanupPostgresTest
+PostgresRuntimeCleanupServiceTest
+PlatformOrganizationCleanupExecutionPostgresTest
+PlatformSystemAdministrationPostgresTest
+
+# Operational scripts executed at U05 with disposable local data only
+scripts/backup-platform.sh
+scripts/restore-platform.sh
+scripts/verify-platform-backup.sh
+
+# Required assertions: latest V1073/85 fresh+upgrade, repeatable restore, restart-safe authority,
+# bytes-first deletion, legal hold/retention, owner cleanup order, no metadata-only fake completion.

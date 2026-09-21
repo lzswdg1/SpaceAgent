@@ -1,0 +1,146 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "Active Agent Runs",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "max(spaceagent_agent_runs_active)", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] }
+    },
+    {
+      "title": "Recovering Runs",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 4, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "max(spaceagent_agent_runs_recovering)", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] }
+    },
+    {
+      "title": "Model UNKNOWN",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "max(spaceagent_agent_model_calls_window{outcome=\"unknown\"})", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] }
+    },
+    {
+      "title": "Tool UNKNOWN",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "max(spaceagent_agent_tool_executions_window{outcome=\"unknown\"})", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] }
+    },
+    {
+      "title": "Settled Cost",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "max(spaceagent_agent_cost_settled_usd)", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "currencyUSD", "min": 0 }, "overrides": [] }
+    },
+    {
+      "title": "Telemetry Freshness",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 20, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "max(spaceagent_agent_telemetry_refresh_age_seconds)", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "s", "min": 0 }, "overrides": [] }
+    },
+    {
+      "title": "Agent Run Outcomes (rolling window)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{
+        "expr": "max by (outcome) (spaceagent_agent_runs_window{outcome!=\"total\"})",
+        "legendFormat": "{{outcome}}",
+        "refId": "A"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] }
+    },
+    {
+      "title": "Model / Tool Outcomes (rolling window)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "max by (outcome) (spaceagent_agent_model_calls_window{outcome!=\"total\"})",
+          "legendFormat": "model {{outcome}}",
+          "refId": "A"
+        },
+        {
+          "expr": "max by (outcome) (spaceagent_agent_tool_executions_window{outcome!=\"total\"})",
+          "legendFormat": "tool {{outcome}}",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] }
+    },
+    {
+      "title": "P95 Operation Latency",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{
+        "expr": "max by (operation) (spaceagent_agent_latency_p95_seconds)",
+        "legendFormat": "{{operation}}",
+        "refId": "A"
+      }],
+      "fieldConfig": { "defaults": { "unit": "s", "min": 0 }, "overrides": [] }
+    },
+    {
+      "title": "Token Evidence (rolling window)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{
+        "expr": "max by (type) (spaceagent_agent_tokens_window)",
+        "legendFormat": "{{type}}",
+        "refId": "A"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] }
+    },
+    {
+      "title": "Collaboration / Recovery / Acceptance Evidence",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 21 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{
+        "expr": "max by (kind) (spaceagent_agent_evidence_window)",
+        "legendFormat": "{{kind}}",
+        "refId": "A"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] }
+    },
+    {
+      "title": "Incomplete Cost Evidence",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 21 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{
+        "expr": "max(spaceagent_agent_cost_incomplete_runs_window)",
+        "legendFormat": "unpriced runs",
+        "refId": "A"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 }, "overrides": [] }
+    }
+  ],
+  "schemaVersion": 38,
+  "tags": ["spaceagent", "agent", "slo", "opentelemetry"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "SpaceAgent Agent Operations",
+  "uid": "spaceagent-agent-operations",
+  "version": 1
+}

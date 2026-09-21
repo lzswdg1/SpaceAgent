@@ -1,0 +1,4 @@
+import test from "node:test"; import assert from "node:assert/strict"; import { readFile } from "node:fs/promises"; import { resolve } from "node:path";
+import { parseGraphV2Request, parseGraphV2Result } from "../src/graph-v2-contracts.js";
+const fixture=async(name:string)=>JSON.parse(await readFile(resolve(process.cwd(),"../../contracts/multi-agent/v2/fixtures",name),"utf8"));
+test("graph v2 golden fixtures remain strict and compute-only",async()=>{const request=parseGraphV2Request(await fixture("graph-request.json"));const result=parseGraphV2Result(await fixture("graph-result.json"));assert.equal(request.bundleHash,result.bundleHash);assert.equal(result.ephemeral,true);assert.equal(result.nextCursor.pendingCommandId,result.command.commandId);assert.throws(()=>parseGraphV2Result({...result,ephemeral:false}));});

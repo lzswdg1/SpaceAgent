@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.dev/contracts/local-bridge/v1/materialization-session.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "requestId", "tenantId", "ownerUserId", "projectId", "bridgeId"],
+  "properties": {
+    "contractVersion": {"const": "local-materialization/v1"},
+    "requestId": {"type": "string", "minLength": 1, "maxLength": 200},
+    "tenantId": {"type": "string", "minLength": 1, "maxLength": 200},
+    "ownerUserId": {"type": "string", "minLength": 1, "maxLength": 200},
+    "projectId": {"type": "string", "minLength": 1, "maxLength": 200},
+    "bridgeId": {"type": "string", "minLength": 1, "maxLength": 200}
+  }
+}

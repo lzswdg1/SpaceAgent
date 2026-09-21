@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.local/contracts/platform-admin/v1/organization-member-page.schema.json",
+  "title": "Platform administration Organization member page",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "page", "pageSize", "total", "generatedAt"],
+  "properties": {
+    "items": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/member"}},
+    "page": {"type": "integer", "minimum": 0},
+    "pageSize": {"type": "integer", "minimum": 1, "maximum": 100},
+    "total": {"type": "integer", "minimum": 0},
+    "generatedAt": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "member": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["organizationId", "userId", "loginName", "userStatus", "role", "membershipStatus", "joinedAt", "updatedAt"],
+      "properties": {
+        "organizationId": {"type": "string", "maxLength": 36},
+        "userId": {"type": "string", "maxLength": 36},
+        "loginName": {"type": "string", "maxLength": 255},
+        "displayName": {"type": ["string", "null"], "maxLength": 120},
+        "userStatus": {"enum": ["PENDING_ACTIVATION", "ACTIVE", "SUSPENDED", "DELETION_PENDING", "DELETED"]},
+        "role": {"enum": ["OWNER", "ADMIN", "MEMBER", "VIEWER"]},
+        "membershipStatus": {"enum": ["ACTIVE", "SUSPENDED"]},
+        "joinedAt": {"type": "string", "format": "date-time"},
+        "updatedAt": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "version": "spaceagent-rag-contract-fixture-v1",
+  "purpose": "Small reproducible Chinese/English engineering corpus, not production semantic quality acceptance.",
+  "documents": [
+    {"id":"permissions","source":"docs/design/enterprise-rag/设计.md#3","text":"个人知识库只供所有者使用。组织 OWNER 管理组织知识库，组织成员需要显式 READ、WRITE 或 MANAGE 授权。Agent 绑定本身不授予知识库权限。"},
+    {"id":"recovery","source":"docs/operations/KNOWLEDGE-RAG-RUNBOOK.md","text":"The index repair worker restores an active Milvus generation from verified stored embedding vectors. It never calls an embedding provider. Missing or corrupt vector objects require an explicitly authorized rebuild."},
+    {"id":"parsing","source":"docs/design/enterprise-rag/设计.md#pr3","text":"解析由独立 Apache Tika 服务处理文字 PDF 和 DOCX。PDF 保留真实页码，DOCX 不伪造页码；OCR 与嵌入附件不在本轮解析范围。"},
+    {"id":"deletion","source":"docs/operations/KNOWLEDGE-RAG-RUNBOOK.md","text":"Deleting a document first clears its PostgreSQL active-generation pointer. Durable tombstones clean Milvus and objects after leases expire, verify twice, and periodically remove late writes. Superseded-generation cleanup does not delete the current document."}
+  ],
+  "queries": [
+    {"id":"zh-permission","query":"组织普通成员可以直接读取所有知识库吗？","relevantDocumentIds":["permissions"]},
+    {"id":"en-agent-binding","query":"Does binding an Agent grant access to private knowledge?","relevantDocumentIds":["permissions"]},
+    {"id":"en-repair","query":"Can a lost vector index be restored without another embedding purchase?","relevantDocumentIds":["recovery"]},
+    {"id":"zh-corrupt","query":"向量中间产物损坏后会自动调用付费模型吗？","relevantDocumentIds":["recovery"]},
+    {"id":"zh-page","query":"DOCX 引用是否有可靠页码？","relevantDocumentIds":["parsing"]},
+    {"id":"en-ocr","query":"Are scanned PDFs and embedded attachments supported by this parser?","relevantDocumentIds":["parsing"]},
+    {"id":"en-delete","query":"How are late vector writes removed after document deletion?","relevantDocumentIds":["deletion"]},
+    {"id":"zh-retire","query":"清理旧代次会不会删除当前生效文档？","relevantDocumentIds":["deletion"]}
+  ]
+}

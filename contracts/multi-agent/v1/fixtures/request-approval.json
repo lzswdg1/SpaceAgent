@@ -1,0 +1,18 @@
+{
+  "contractVersion": "multi-agent/v1",
+  "requestId": "ma-req-approval",
+  "agentRunId": "run-approval",
+  "organizationId": "org-1",
+  "userId": "user-1",
+  "mode": "PROJECT",
+  "projectId": "project-1",
+  "taskId": "task-root",
+  "taskPlanId": "plan-1",
+  "conversationId": "conversation-1",
+  "agentRefs": [],
+  "modelPoolRef": null,
+  "context": { "contextPackageId": "context-3", "tokenBudget": 1024, "sources": [] },
+  "capabilities": { "allowedToolNames": [], "allowedSkillIds": [], "allowedMcpServerIds": [] },
+  "cursor": { "phase": "awaiting_approval", "checkpointId": "checkpoint-3", "planStepId": "step-approval", "childTaskId": "task-child-2" },
+  "limits": { "maxDelegations": 0, "maxParallelAgents": 1, "maxDepth": 1, "remainingTokenBudget": 1000 }
+}

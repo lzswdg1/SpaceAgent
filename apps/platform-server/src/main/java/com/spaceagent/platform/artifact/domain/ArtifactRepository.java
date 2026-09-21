@@ -1,0 +1,1 @@
+package com.spaceagent.platform.artifact.domain;import java.util.List;import java.util.Optional;public interface ArtifactRepository{void save(Artifact a);Optional<Artifact> findById(String id);List<Artifact> findByRunId(String run);List<Artifact> findByTaskId(String task);}

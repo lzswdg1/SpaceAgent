@@ -1,0 +1,25 @@
+{
+  "executionId": "exec-1",
+  "agentRunId": "run-1",
+  "toolCallId": "call-1",
+  "workspaceRef": "workspace-1",
+  "taskRef": "task-1",
+  "tool": "sandbox-bash",
+  "command": "echo",
+  "arguments": [
+    "hello"
+  ],
+  "timeoutSeconds": 5,
+  "resourcePolicy": {
+    "maxOutputBytes": 65536,
+    "maxCpuSeconds": 2,
+    "maxMemoryBytes": 268435456,
+    "allowNetwork": false,
+    "readOnlyWorkspace": false,
+    "allowedPaths": [
+      "workspace-1"
+    ]
+  },
+  "environment": "{}",
+  "inputBase64": null
+}

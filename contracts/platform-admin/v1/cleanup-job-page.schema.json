@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.local/contracts/platform-admin/v1/cleanup-job-page.schema.json",
+  "title": "Global cleanup job page",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "page", "pageSize", "total", "generatedAt"],
+  "properties": {
+    "items": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/job"}},
+    "page": {"type": "integer", "minimum": 0},
+    "pageSize": {"type": "integer", "minimum": 1, "maximum": 100},
+    "total": {"type": "integer", "minimum": 0},
+    "generatedAt": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "job": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "subjectId", "state", "retentionNotBefore", "nextAttemptAt", "attempt", "maxAttempts", "revision", "completedSteps", "totalSteps", "createdAt", "updatedAt"],
+      "properties": {
+        "kind": {"enum": ["USER", "ORGANIZATION"]},
+        "subjectId": {"type": "string", "maxLength": 36},
+        "state": {"enum": ["PENDING", "CLAIMED", "RETRY", "BLOCKED", "COMPLETED"]},
+        "commandId": {"type": ["string", "null"], "format": "uuid"},
+        "requestedBy": {"type": ["string", "null"], "format": "uuid"},
+        "retentionNotBefore": {"type": "string", "format": "date-time"},
+        "nextAttemptAt": {"type": "string", "format": "date-time"},
+        "attempt": {"type": "integer", "minimum": 0},
+        "maxAttempts": {"type": "integer", "minimum": 1},
+        "lastErrorCode": {"type": ["string", "null"], "maxLength": 64},
+        "lastErrorSummary": {"type": ["string", "null"], "maxLength": 500},
+        "revision": {"type": "integer", "minimum": 0},
+        "completedSteps": {"type": "integer", "minimum": 0},
+        "totalSteps": {"type": "integer", "minimum": 1},
+        "currentStepKey": {"type": ["string", "null"], "maxLength": 80},
+        "createdAt": {"type": "string", "format": "date-time"},
+        "updatedAt": {"type": "string", "format": "date-time"},
+        "completedAt": {"type": ["string", "null"], "format": "date-time"}
+      }
+    }
+  }
+}

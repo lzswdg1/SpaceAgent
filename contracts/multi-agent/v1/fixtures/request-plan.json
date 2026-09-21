@@ -1,0 +1,22 @@
+{
+  "contractVersion": "multi-agent/v1",
+  "requestId": "ma-req-plan",
+  "agentRunId": "run-plan",
+  "organizationId": "org-1",
+  "userId": "user-1",
+  "mode": "PROJECT",
+  "projectId": "project-1",
+  "taskId": "task-root",
+  "taskPlanId": null,
+  "conversationId": "conversation-1",
+  "agentRefs": [{ "agentId": "agent-1", "runConfigurationSnapshotId": "run-plan", "role": "supervisor" }],
+  "modelPoolRef": "pool-1",
+  "context": {
+    "contextPackageId": "context-1",
+    "tokenBudget": 8192,
+    "sources": [{ "type": "TASK", "sourceId": "task-root", "content": "Implement durable planning", "priority": 100 }]
+  },
+  "capabilities": { "allowedToolNames": [], "allowedSkillIds": [], "allowedMcpServerIds": [] },
+  "cursor": { "phase": "planning", "checkpointId": "checkpoint-1", "planStepId": null, "childTaskId": null },
+  "limits": { "maxDelegations": 8, "maxParallelAgents": 2, "maxDepth": 4, "remainingTokenBudget": 6000 }
+}

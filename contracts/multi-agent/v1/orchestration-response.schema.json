@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.dev/contracts/multi-agent/v1/orchestration-response.schema.json",
+  "title": "SpaceAgent Multi-Agent Orchestration Response v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "requestId", "agentRunId", "command", "orchestration"],
+  "properties": {
+    "contractVersion": { "const": "multi-agent/v1" },
+    "requestId": { "type": "string", "minLength": 1 },
+    "agentRunId": { "type": "string", "minLength": 1 },
+    "command": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["kind", "payload"],
+          "properties": {
+            "kind": { "const": "MODEL_REQUESTED" },
+            "payload": {
+              "type": "object", "additionalProperties": false,
+              "required": ["modelPoolRef", "logicalCallId", "messages", "parameters"],
+              "properties": {
+                "modelPoolRef": { "type": "string", "minLength": 1 },
+                "logicalCallId": { "type": "string", "minLength": 1, "maxLength": 200 },
+                "messages": {
+                  "type": "array", "minItems": 1, "maxItems": 4,
+                  "items": {
+                    "type": "object", "additionalProperties": false,
+                    "required": ["role", "content"],
+                    "properties": {
+                      "role": { "enum": ["system", "user"] },
+                      "content": { "type": "string", "minLength": 1, "maxLength": 32000 }
+                    }
+                  }
+                },
+                "parameters": {
+                  "type": "object", "additionalProperties": false,
+                  "required": ["temperature", "maxOutputTokens", "responseFormat"],
+                  "properties": {
+                    "temperature": { "type": "number", "minimum": 0, "maximum": 1 },
+                    "maxOutputTokens": { "type": "integer", "minimum": 64, "maximum": 4096 },
+                    "responseFormat": { "const": "json_object" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["kind", "payload"],
+          "properties": {
+            "kind": { "const": "HANDOFF_PROPOSED" },
+            "payload": { "type": "object", "additionalProperties": false,
+              "required": ["sourceAgentRunId", "targetAgentId", "summary"],
+              "properties": {
+                "sourceAgentRunId": { "type": "string", "minLength": 1 },
+                "targetAgentId": { "type": "string", "minLength": 1 },
+                "summary": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["kind", "payload"],
+          "properties": {
+            "kind": { "const": "REVIEW_REQUIRED" },
+            "payload": { "type": "object", "additionalProperties": false,
+              "required": ["taskPlanId", "planStepId", "artifactIds"],
+              "properties": {
+                "taskPlanId": { "type": "string", "minLength": 1 },
+                "planStepId": { "type": "string", "minLength": 1 },
+                "artifactIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+              }
+            }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["kind", "payload"],
+          "properties": {
+            "kind": { "const": "PLAN_PROPOSED" },
+            "payload": {
+              "type": "object", "additionalProperties": false,
+              "required": ["rootTaskId", "strategySummary", "steps"],
+              "properties": {
+                "rootTaskId": { "type": "string", "minLength": 1 },
+                "strategySummary": { "type": "string", "minLength": 1 },
+                "steps": {
+                  "type": "array", "minItems": 1,
+                  "items": {
+                    "type": "object", "additionalProperties": false,
+                    "required": ["stepKey", "goal", "dependsOnStepKeys"],
+                    "properties": {
+                      "stepKey": { "type": "string", "minLength": 1 },
+                      "goal": { "type": "string", "minLength": 1 },
+                      "dependsOnStepKeys": { "type": "array", "items": { "type": "string" } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["kind", "payload"],
+          "properties": {
+            "kind": { "const": "DELEGATE_SUBTASK" },
+            "payload": {
+              "type": "object", "additionalProperties": false,
+              "required": ["taskPlanId", "planStepId", "childTaskId", "preferredAgentId"],
+              "properties": {
+                "taskPlanId": { "type": "string", "minLength": 1 },
+                "planStepId": { "type": "string", "minLength": 1 },
+                "childTaskId": { "type": "string", "minLength": 1 },
+                "preferredAgentId": { "type": ["string", "null"] }
+              }
+            }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["kind", "payload"],
+          "properties": {
+            "kind": { "const": "APPROVAL_REQUIRED" },
+            "payload": {
+              "type": "object", "additionalProperties": false,
+              "required": ["scopeType", "scopeId", "reason"],
+              "properties": {
+                "scopeType": { "enum": ["TASK_PLAN", "PLAN_STEP"] },
+                "scopeId": { "type": "string", "minLength": 1 },
+                "reason": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["kind", "payload"],
+          "properties": {
+            "kind": { "const": "COMPLETED" },
+            "payload": {
+              "type": "object", "additionalProperties": false,
+              "required": ["summary"],
+              "properties": { "summary": { "type": "string", "minLength": 1 } }
+            }
+          }
+        }
+      ]
+    },
+    "orchestration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["route", "ephemeral"],
+      "properties": {
+        "route": { "enum": ["model", "planner", "delegate", "handoff", "review", "approval", "complete"] },
+        "ephemeral": { "const": true }
+      }
+    }
+  }
+}

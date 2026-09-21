@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.local/contracts/platform-admin/v1/administrator-command.schema.json",
+  "title": "Singleton administrator session command result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["commandId", "operation", "state", "administrator", "revokedSessions", "createdAt", "updatedAt"],
+  "properties": {
+    "commandId": {"type": "string", "format": "uuid"},
+    "operation": {"const": "ADMIN_PRINCIPAL_SESSION_REVOKE"},
+    "state": {"const": "SUCCEEDED"},
+    "administrator": {"$ref": "administrator-page.schema.json#/$defs/administrator"},
+    "provisioning": {"type": "null"},
+    "revokedSessions": {"type": "integer", "minimum": 0},
+    "createdAt": {"type": "string", "format": "date-time"},
+    "updatedAt": {"type": "string", "format": "date-time"},
+    "completedAt": {"type": ["string", "null"], "format": "date-time"}
+  }
+}

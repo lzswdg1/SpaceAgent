@@ -1,0 +1,60 @@
+name: Feature request
+description: Propose a focused improvement for the SpaceAgent developer Beta
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        SpaceAgent is a developer Beta. Explain the user problem and acceptance outcome before proposing implementation details.
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched existing issues and roadmap documents for this request.
+          required: true
+        - label: This request contains no credentials, private data, or confidential repository content.
+          required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: Who is blocked, in which workflow, and what outcome is unavailable today?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe observable acceptance criteria without prescribing a full rewrite.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Include current workarounds or narrower options.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Primary area
+      options:
+        - Chat
+        - Project and Workspace
+        - Agent and Skill
+        - Runtime and Multi-Agent
+        - Tooling, MCP, or Sandbox
+        - Knowledge and RAG
+        - Organization and administration
+        - Observability and operations
+        - Developer experience
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Security and compatibility considerations
+      description: Note tenant, permission, secret, persistence, external-effect, or migration implications.

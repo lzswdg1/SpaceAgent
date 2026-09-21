@@ -1,0 +1,36 @@
+services:
+  rag-parser:
+    image: apache/tika:3.3.0.0@sha256:2a565f1ea1290bdcb74a7d35957d16a989ed44ef98790dcdcc28121d728fa583
+    user: "65534:65534"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 96
+    mem_limit: 768m
+    cpus: 1.0
+    environment:
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m -Djava.io.tmpdir=/tmp
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=268435456,mode=1777
+    networks: [knowledge-parser]
+    restart: unless-stopped
+  rag-parser-gateway:
+    image: nginx:1.28.3-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236
+    user: "65534:65534"
+    entrypoint: [nginx, -c, /etc/nginx/parser.conf, -g, "daemon off;"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 32
+    mem_limit: 96m
+    tmpfs: ["/tmp:rw,nosuid,nodev,size=33554432,mode=1777"]
+    volumes:
+      - ./docker/rag/parser-gateway.conf:/etc/nginx/parser.conf:ro
+    ports:
+      - "127.0.0.1:${RAG_PARSER_HOST_PORT:-19998}:8080"
+    networks: [default, knowledge-parser]
+    depends_on: [rag-parser]
+    restart: unless-stopped
+networks:
+  knowledge-parser:
+    internal: true

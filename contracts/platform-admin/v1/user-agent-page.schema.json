@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.local/contracts/platform-admin/v1/user-agent-page.schema.json",
+  "title": "Platform administration User-owned Agent page",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "page", "pageSize", "total", "generatedAt"],
+  "properties": {
+    "items": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/agent"}},
+    "page": {"type": "integer", "minimum": 0},
+    "pageSize": {"type": "integer", "minimum": 1, "maximum": 100},
+    "total": {"type": "integer", "minimum": 0},
+    "generatedAt": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "organizationId", "ownerUserId", "name", "status", "revision", "activeKeyCount", "createdAt", "updatedAt"],
+      "properties": {
+        "id": {"type": "string", "maxLength": 36},
+        "organizationId": {"type": "string", "maxLength": 36},
+        "ownerUserId": {"type": "string", "maxLength": 36},
+        "name": {"type": "string", "maxLength": 120},
+        "description": {"type": ["string", "null"], "maxLength": 500},
+        "status": {"enum": ["ACTIVE", "ARCHIVED"]},
+        "revision": {"type": "integer", "minimum": 1},
+        "activeKeyCount": {"type": "integer", "minimum": 0},
+        "createdAt": {"type": "string", "format": "date-time"},
+        "updatedAt": {"type": "string", "format": "date-time"},
+        "archivedAt": {"type": ["string", "null"], "format": "date-time"}
+      }
+    }
+  }
+}

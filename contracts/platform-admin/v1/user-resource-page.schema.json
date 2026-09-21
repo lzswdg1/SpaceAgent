@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.local/contracts/platform-admin/v1/user-resource-page.schema.json",
+  "title": "Redacted user resource page",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "page", "pageSize", "total", "generatedAt"],
+  "properties": {
+    "items": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/resource"}},
+    "page": {"type": "integer", "minimum": 0},
+    "pageSize": {"type": "integer", "minimum": 1, "maximum": 100},
+    "total": {"type": "integer", "minimum": 0},
+    "generatedAt": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "state", "createdAt", "updatedAt", "primaryCount", "secondaryCount"],
+      "properties": {
+        "kind": {"enum": ["MODEL_POOL", "PROJECT", "TASK", "WORKSPACE", "CONVERSATION", "MCP_CONNECTION", "KNOWLEDGE_DOCUMENT", "MEMORY", "AUTOMATION", "RUN", "MODEL_EFFECT", "TOOL_EFFECT"]},
+        "id": {"type": "string", "maxLength": 80},
+        "organizationId": {"type": ["string", "null"], "maxLength": 64},
+        "parentId": {"type": ["string", "null"], "maxLength": 80},
+        "displayName": {"type": ["string", "null"], "maxLength": 200},
+        "state": {"type": "string", "maxLength": 32},
+        "relation": {"type": ["string", "null"], "maxLength": 320},
+        "createdAt": {"type": "string", "format": "date-time"},
+        "updatedAt": {"type": "string", "format": "date-time"},
+        "safeErrorCode": {"type": ["string", "null"], "maxLength": 160},
+        "primaryCount": {"type": "integer", "minimum": 0},
+        "secondaryCount": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

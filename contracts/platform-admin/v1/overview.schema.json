@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.local/contracts/platform-admin/v1/overview.schema.json",
+  "title": "Platform administration overview projection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["window", "generatedAt", "releaseVersion", "schemaVersion", "platformReadiness", "identity", "inference", "agent", "project", "conversation", "runtime", "tooling"],
+  "properties": {
+    "window": {"enum": ["24h", "7d", "30d"]},
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "releaseVersion": {"type": "string"},
+    "schemaVersion": {"type": "integer", "minimum": 1},
+    "platformReadiness": {"enum": ["UP", "NOT_CHECKED"], "description": "Legacy UP is API reachability only, never proof of whole-platform readiness."},
+    "identity": {"$ref": "#/$defs/countObject"},
+    "inference": {"$ref": "#/$defs/countObject"},
+    "agent": {"$ref": "#/$defs/countObject"},
+    "project": {"$ref": "#/$defs/countObject"},
+    "conversation": {"$ref": "#/$defs/countObject"},
+    "runtime": {"$ref": "#/$defs/countObject"},
+    "tooling": {"$ref": "#/$defs/countObject"}
+  },
+  "$defs": {
+    "countObject": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": ["integer", "null"], "minimum": 0},
+      "description": "Null means unavailable, not zero. Inference includes unknownModelCalls; runtime.unknownRuns is nullable because UNKNOWN belongs to effect ledgers, not the Run state machine."
+    }
+  }
+}

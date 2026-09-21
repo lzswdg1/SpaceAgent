@@ -1,0 +1,16 @@
+.agent-skills{margin:16px 0 22px;padding-bottom:18px;border-bottom:1px solid var(--app-line);min-width:0}
+.agent-skills header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.agent-skills header b{font-size:14px}.agent-skills button{padding:6px 10px;border:1px solid var(--app-line);border-radius:7px;background:var(--app-card);color:var(--app-text);cursor:pointer}
+.agent-skills button:disabled{opacity:.5;cursor:not-allowed}.agent-skills p,.agent-skills small{font-size:12px;color:var(--app-muted);line-height:1.6}
+.agent-skills header>div,.skill-bound{display:flex;gap:8px;flex-wrap:wrap}.skill-bound>span{font-size:12px;border:1px solid var(--app-line);padding:3px 8px;border-radius:6px;overflow-wrap:anywhere}
+.skill-bound button{border:0;background:transparent}.skill-catalog{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:10px;margin-top:12px;max-height:440px;overflow:auto}
+.skill-catalog article{padding:12px;border:1px solid var(--app-line);border-radius:9px;min-width:0}
+.agent-skills .skill-catalog label{display:flex;gap:10px;align-items:start;margin:0}
+.agent-skills .skill-catalog input[type=checkbox],.agent-skills .skill-tool-check input{width:16px;height:16px;flex:none;margin:2px 0;accent-color:var(--app-text)}
+.skill-catalog small{display:block}.skill-catalog details{font-size:12px;margin:10px 0}.skill-catalog summary{cursor:pointer}
+.skill-catalog pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;font:12px/1.6 monospace}
+.skill-editor{margin-top:14px;border:1px solid var(--app-line);border-radius:10px;padding:14px}
+.skill-editor textarea{min-height:180px}.skill-editor>label{font-size:12px}.skill-editor>label input,.skill-editor>label textarea{display:block;width:100%;box-sizing:border-box}
+.skill-editor fieldset{max-height:180px;overflow:auto;border:1px solid var(--app-line);margin:14px 0;font-size:12px}
+.agent-skills label.skill-tool-check{display:inline-flex;align-items:center;gap:7px;margin:7px 14px 7px 0}
+.skill-editor>div{display:flex;gap:8px}.agent-skills :is(button,input,textarea,summary):focus-visible{outline:2px solid var(--app-text);outline-offset:2px}

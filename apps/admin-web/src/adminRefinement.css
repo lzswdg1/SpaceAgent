@@ -1,0 +1,77 @@
+/* Compact administration surfaces; keep business actions and explicit warnings. */
+.admin-shell { grid-template-columns: 216px minmax(0, 1fr); }
+.sidebar { padding: 22px 16px; }
+.sidebar > header { height: 64px; }
+.sidebar nav button { font-size: 14px; height: 44px; }
+.topbar { height: 64px; }
+.page-head { padding: 28px 0 22px; gap: 18px; }
+.page-head h1 { margin: 0; font-size: clamp(26px, 3vw, 36px); line-height: 1.25; letter-spacing: normal; }
+.page-head p { margin-top: 10px; max-width: 65ch; font-size: 13px; line-height: 1.6; }
+.freshness span, .freshness b { font-size: 12px; letter-spacing: normal; }
+.freshness { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: flex-end; }
+.refresh-button { border: 1px solid var(--line); border-radius: 6px; padding: 8px 14px; background: var(--panel); color: var(--text); cursor: pointer; }
+.metric-strip { grid-template-columns: repeat(4,minmax(0,1fr)); margin-bottom: 24px; }
+.metric { padding: 20px; min-width: 0; }
+.metric > span { font-size: 13px; letter-spacing: normal; }
+.metric > strong { font-size: 34px; margin: 14px 0; }
+.metric > small { position: static; display: block; text-align: left; font-size: 12px; line-height: 1.6; }
+.surface > header { min-height: 48px; padding: 12px 20px; }
+.surface > header b { font-size: 14px; }
+.attention-list { padding: 0 20px; }
+.attention-list > div { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 0; border-top: 1px solid var(--line); }
+.attention-list b { font-weight: 500; font-size: 14px; }
+.attention-list small { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; }
+.attention-list strong { font-size: 24px; font-weight: 500; }
+.observation-details { margin-top: 22px; padding: 16px 20px; }
+.observation-details summary { cursor: pointer; font-size: 14px; }
+.observation-details p, .inventory-table p { color: var(--muted); font-size: 13px; line-height: 1.6; }
+.observation-details .range { margin-top: 20px; width: fit-content; }
+.observation-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px 24px; }
+.observation-fields div { min-width: 0; }
+.observation-fields dt { font-size: 12px; color: var(--muted); }
+.observation-fields dd { margin: 6px 0 0; overflow-wrap: anywhere; font-size: 14px; }
+.inventory-table { padding: 16px 20px; overflow: auto; }
+.inventory-table table { width: 100%; border-collapse: collapse; text-align: left; }
+.inventory-table th, .inventory-table td { padding: 14px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.inventory-table th { color: var(--muted); font-weight: 500; }
+.data-row { font-size: 13px; min-height: 64px; }
+.data-row.heading { font-size: 12px; letter-spacing: normal; }
+.data-row .identity b, .data-row .identity span { font-size: 13px; }
+.data-row small, .data-row .identity small { font-size: 11px; }
+.toolbar input, .toolbar select, .registry-toolbar select, .tabs button { font-size: 13px; }
+.pagination, .pagination button, .mini-pagination, .mini-pagination button { font-size: 12px; }
+.form-error, .page-error, .empty-state { font-size: 13px; line-height: 1.6; }
+.drawer .detail-grid span, .drawer-section header span, .member-row small, .credential-grid dd { font-size: 12px; }
+.drawer .detail-grid b, .drawer-section header b, .member-row b { font-size: 13px; }
+.modal h2 { font-size: 26px; line-height: 1.3; }
+.modal label > span, .modal p, .modal input, .modal textarea, .modal select, .modal button { font-size: 13px; }
+.singleton-identity > header { flex-wrap: wrap; gap: 8px; }
+.singleton-identity > header > b { min-width: 0; overflow-wrap: anywhere; }
+.operator { display: block; }
+.operator > b { font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
+.drawer .profile { grid-template-columns: minmax(0, 1fr); }
+.auth-gate { display: flex; justify-content: center; }
+.auth-gate .auth-form-panel { width: min(100%, 520px); padding: 80px 28px 32px; }
+.auth-form-panel > .wordmark { margin-bottom: 28px; }
+button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+@media (min-width: 681px) and (max-width: 1180px) {
+  .admin-shell { grid-template-columns: 176px minmax(0,1fr); }
+  .sidebar .wordmark { display: block; font-size: 22px; }
+  .sidebar nav button > span { display: block; font-size: 13px; }
+  .sidebar nav button { padding: 0 8px; }
+  .metric-strip { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 680px) {
+  .admin-shell { display: block; }
+  .sidebar { padding: 0 8px; }
+  .sidebar nav button > span { font-size: 12px; }
+  .sidebar nav button { min-width: 100px; height: 58px; }
+  .topbar { margin-inline: 16px; gap: 10px; }
+  .global-scope { display: none; }
+  .top-actions { margin-left: auto; }
+  .top-actions button, .top-actions a { font-size: 11px; }
+  .page-head { grid-template-columns: 1fr; padding-top: 22px; }
+  .freshness { justify-content: flex-start; }
+  .metric-strip, .observation-fields { grid-template-columns: 1fr; }
+  .admin-content { padding-bottom: 90px; }
+}

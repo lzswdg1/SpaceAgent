@@ -1,0 +1,89 @@
+.conversation-viewport {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  contain: paint;
+}
+.platform-glass .conversation-viewport > :is(.message-log, .project-message-log) {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  padding: 28px clamp(20px, 5%, 64px) 40px;
+  overflow-y: auto;
+  overflow-anchor: none;
+  scroll-behavior: auto;
+}
+.platform-glass .conversation-viewport .conversation-transcript {
+  width: 100%;
+  max-width: 760px;
+  min-height: 100%;
+  margin: 0 auto;
+  overflow-anchor: none;
+}
+.platform-glass .conversation-transcript > article {
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 28px;
+  padding: 0;
+}
+.platform-glass .conversation-viewport .conversation-transcript > article > span { display: none; }
+.platform-glass .conversation-transcript > article > :is(.chat-message-content, .project-message-content) {
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+}
+.platform-glass .conversation-transcript > article.user {
+  display: flex;
+  justify-content: flex-end;
+  max-width: none;
+  margin: 0 0 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+}
+.platform-glass .conversation-transcript > article.user > :is(.chat-message-content, .project-message-content) {
+  display: block;
+  flex: 0 1 auto;
+  width: fit-content;
+  max-width: min(80%, 600px);
+  min-height: 44px;
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 24px;
+  background: #e8f2ff;
+  color: #19354f;
+  white-space: pre-wrap;
+  text-align: left;
+}
+:root[data-theme=dark] .platform-glass .conversation-transcript > article.user > :is(.chat-message-content, .project-message-content) {
+  background: #26394e;
+  color: #e4efff;
+}
+.platform-glass .conversation-transcript .markdown-message :is(p, li) { font-size: inherit; }
+.platform-glass .conversation-viewport > .message-jump-latest {
+  position: absolute;
+  right: 20px;
+  bottom: 12px;
+  z-index: 2;
+  padding: 8px 13px;
+  border: 1px solid var(--app-line);
+  border-radius: 20px;
+  background: var(--app-sidebar);
+  color: var(--app-text);
+  box-shadow: 0 3px 14px #00000012;
+  font-size: 12px;
+}
+@media(max-width:700px) {
+  .platform-glass .conversation-viewport > :is(.message-log, .project-message-log) { padding: 22px 18px 38px; }
+  .platform-glass .conversation-transcript > article.user > :is(.chat-message-content, .project-message-content) {
+    max-width: 88%;
+    padding: 11px 16px;
+    border-radius: 22px;
+  }
+}

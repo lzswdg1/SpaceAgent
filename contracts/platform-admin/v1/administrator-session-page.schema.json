@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.local/contracts/platform-admin/v1/administrator-session-page.schema.json",
+  "title": "Administrator session page",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "page", "pageSize", "total", "generatedAt"],
+  "properties": {
+    "items": {"type": "array", "maxItems": 100, "items": {"type": "object", "additionalProperties": false, "required": ["id", "principalId", "active", "current", "credentialVersion", "mfaVerifiedAt", "expiresAt", "createdAt", "lastRotatedAt"], "properties": {
+      "id": {"type": "string", "format": "uuid"}, "principalId": {"type": "string", "format": "uuid"},
+      "active": {"type": "boolean"}, "current": {"type": "boolean"}, "credentialVersion": {"type": "integer", "minimum": 1},
+      "mfaVerifiedAt": {"type": "string", "format": "date-time"}, "expiresAt": {"type": "string", "format": "date-time"},
+      "revokedAt": {"type": ["string", "null"], "format": "date-time"}, "createdAt": {"type": "string", "format": "date-time"},
+      "lastRotatedAt": {"type": "string", "format": "date-time"}
+    }}},
+    "page": {"type": "integer", "minimum": 0}, "pageSize": {"type": "integer", "minimum": 1, "maximum": 100},
+    "total": {"type": "integer", "minimum": 0}, "generatedAt": {"type": "string", "format": "date-time"}
+  }
+}

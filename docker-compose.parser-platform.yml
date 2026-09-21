@@ -1,0 +1,6 @@
+# Combine with docker-compose.yml and docker-compose.parser.yml. Parser receives no DB or Provider secrets.
+services:
+  platform-server:
+    environment:
+      PLATFORM_KNOWLEDGE_PARSER_URI: http://rag-parser-gateway:8080
+      PLATFORM_KNOWLEDGE_PARSER_ALLOW_PRIVATE_HTTP: "true"

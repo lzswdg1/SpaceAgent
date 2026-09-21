@@ -1,0 +1,20 @@
+[project]
+name = "spaceagent-sandbox-worker"
+version = "0.1.0"
+description = "Isolated code/tool execution worker for SpaceAgent V2"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = [
+  "docker==7.2.0",
+  "beautifulsoup4==4.13.5",
+  "pypdf==6.0.0",
+  "python-docx==1.2.0",
+  "opentelemetry-sdk==1.41.1",
+  "opentelemetry-exporter-otlp-proto-http==1.41.1"
+]
+
+[project.scripts]
+spaceagent-workspace-tool = "sandbox_worker.workspace_tool:main"
+
+[tool.setuptools]
+packages = ["sandbox_worker"]

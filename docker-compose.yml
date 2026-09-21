@@ -1,0 +1,443 @@
+services:
+  # ===========================================================================
+  # Infrastructure services (always run, no profile needed)
+  # ===========================================================================
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: ${POSTGRES_CONTAINER_NAME:-spaceagent-postgres}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: spaceagent_platform
+      POSTGRES_USER: ${DB_USERNAME:-spaceagent}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-spaceagent123}
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5436}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    healthcheck:
+      # The official image's temporary init server only accepts Unix-socket traffic.
+      # TCP readiness therefore means initialization and the final restart are complete.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${DB_USERNAME:-spaceagent} -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  database-init:
+    image: pgvector/pgvector:pg17
+    container_name: spaceagent-database-init
+    restart: "no"
+    environment:
+      PGHOST: postgres
+      PGUSER: ${DB_USERNAME:-spaceagent}
+      PGPASSWORD: ${DB_PASSWORD:-spaceagent123}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        for database in spaceagent_platform; do
+          exists="$$(psql -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$${database}'")"
+          if [ "$${exists}" != "1" ]; then
+            psql -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE $${database}"
+          fi
+        done
+        psql -d spaceagent_platform -v ON_ERROR_STOP=1 -c "CREATE EXTENSION IF NOT EXISTS vector"
+
+  admin-database-init:
+    image: pgvector/pgvector:pg17
+    profiles: [admin]
+    restart: "no"
+    environment:
+      PGHOST: postgres
+      PGUSER: ${DB_USERNAME:-spaceagent}
+      PGPASSWORD: ${DB_PASSWORD:-spaceagent123}
+      ADMIN_DB_NAME: ${ADMIN_DB_NAME:-spaceagent_admin}
+      ADMIN_DB_USERNAME: ${ADMIN_DB_USERNAME:-spaceagent_admin}
+      ADMIN_DB_PASSWORD: ${ADMIN_DB_PASSWORD:-spaceagent-admin-dev-password-change-me}
+      PLATFORM_DB_NAME: spaceagent_platform
+      PLATFORM_DB_USERNAME: ${DB_USERNAME:-spaceagent}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        psql -d postgres -v ON_ERROR_STOP=1 \
+          -v admin_db="$${ADMIN_DB_NAME}" \
+          -v admin_user="$${ADMIN_DB_USERNAME}" \
+          -v admin_password="$${ADMIN_DB_PASSWORD}" \
+          -v platform_db="$${PLATFORM_DB_NAME}" \
+          -v platform_user="$${PLATFORM_DB_USERNAME}" <<'SQL'
+        SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', :'admin_user', :'admin_password')
+        WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'admin_user') \gexec
+        SELECT format('ALTER ROLE %I PASSWORD %L', :'admin_user', :'admin_password') \gexec
+        SELECT format('CREATE DATABASE %I OWNER %I', :'admin_db', :'admin_user')
+        WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = :'admin_db') \gexec
+        SELECT format('REVOKE CONNECT ON DATABASE %I FROM PUBLIC', :'platform_db') \gexec
+        SELECT format('GRANT CONNECT ON DATABASE %I TO %I', :'platform_db', :'platform_user') \gexec
+        SQL
+
+  platform-admin-server:
+    build:
+      context: .
+      dockerfile: apps/platform-admin-server/Dockerfile
+    container_name: spaceagent-platform-admin-server
+    restart: unless-stopped
+    profiles: [admin]
+    ports:
+      - "${ADMIN_BIND_ADDRESS:-127.0.0.1}:${ADMIN_HOST_PORT:-9400}:9400"
+    environment:
+      ADMIN_DB_URL: jdbc:postgresql://postgres:5432/${ADMIN_DB_NAME:-spaceagent_admin}
+      ADMIN_DB_USERNAME: ${ADMIN_DB_USERNAME:-spaceagent_admin}
+      ADMIN_DB_PASSWORD: ${ADMIN_DB_PASSWORD:-spaceagent-admin-dev-password-change-me}
+      ADMIN_SERVER_ADDRESS: "0.0.0.0"
+      ADMIN_SERVER_PORT: "9400"
+      ADMIN_RELEASE_MODE: ${ADMIN_RELEASE_MODE:-development}
+      ADMIN_JWT_ISSUER: ${ADMIN_JWT_ISSUER:-spaceagent-platform-admin}
+      ADMIN_JWT_AUDIENCE: ${ADMIN_JWT_AUDIENCE:-spaceagent-platform-admin-api}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET:-local-dev-admin-jwt-secret-change-in-production}
+      ADMIN_COOKIE_SECURE: ${ADMIN_COOKIE_SECURE:-false}
+      ADMIN_LOGIN: ${ADMIN_LOGIN:-${ADMIN_BOOTSTRAP_LOGIN:-}}
+      ADMIN_DISPLAY_NAME: ${ADMIN_DISPLAY_NAME:-${ADMIN_BOOTSTRAP_DISPLAY_NAME:-Platform Administrator}}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-${ADMIN_BOOTSTRAP_PASSWORD:-}}
+      ADMIN_PLATFORM_CLIENT_BASE_URL: ${ADMIN_PLATFORM_CLIENT_BASE_URL:-http://platform-server:9000}
+      ADMIN_PLATFORM_CLIENT_JWT_ISSUER: ${SYSTEM_ADMIN_JWT_ISSUER:-spaceagent-platform-admin}
+      ADMIN_PLATFORM_CLIENT_JWT_AUDIENCE: ${SYSTEM_ADMIN_JWT_AUDIENCE:-spaceagent-platform-admin-internal}
+      ADMIN_PLATFORM_CLIENT_JWT_SECRET: ${SYSTEM_ADMIN_JWT_SECRET:-local-dev-system-admin-jwt-secret-change-me}
+      ADMIN_PLATFORM_CLIENT_ALLOW_INSECURE_LOCAL: ${SYSTEM_ADMIN_ALLOW_INSECURE_LOCAL:-false}
+    depends_on:
+      admin-database-init:
+        condition: service_completed_successfully
+      platform-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9400/actuator/health/readiness || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  # Independent private administration UI. It proxies only /admin/v1 to the Admin service;
+  # normal tenant tokens and the public platform API are not accepted here.
+  admin-web:
+    build:
+      context: .
+      dockerfile: apps/admin-web/Dockerfile
+      args:
+        VITE_USER_WEB_URL: ${USER_WEB_PUBLIC_URL:-}
+    container_name: spaceagent-admin-web
+    restart: unless-stopped
+    profiles: [admin]
+    ports:
+      - "${ADMIN_WEB_BIND_ADDRESS:-127.0.0.1}:${ADMIN_WEB_HOST_PORT:-5174}:80"
+    depends_on:
+      platform-admin-server:
+        condition: service_healthy
+
+  # ===========================================================================
+  # Active V2 Java platform. This is the only Java client/API entry point.
+  # ===========================================================================
+  platform-server:
+    build:
+      context: .
+      dockerfile: apps/platform-server/Dockerfile
+    container_name: spaceagent-platform-server
+    restart: unless-stopped
+    ports:
+      - "${PLATFORM_BIND_ADDRESS:-127.0.0.1}:9000:9000"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/spaceagent_platform
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-spaceagent}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-spaceagent123}
+      SPRING_FLYWAY_ENABLED: "true"
+      PLATFORM_PERSISTENCE: postgres
+      PLATFORM_SERVER_PORT: "9000"
+      PLATFORM_JWT_SECRET: ${JWT_SECRET:-spaceagent-dev-jwt-secret-change-in-production}
+      PLATFORM_INTERNAL_TOKEN: ${INTERNAL_SERVICE_TOKEN:-spaceagent-dev-internal-token-change-in-production}
+      PLATFORM_IDENTITY_ACTIVITY_HASH_KEY: ${IDENTITY_ACTIVITY_HASH_KEY:-local-dev-identity-activity-hash-key-change-me}
+      PLATFORM_IDENTITY_PRESENCE_RETENTION_HOURS: ${IDENTITY_PRESENCE_RETENTION_HOURS:-24}
+      PLATFORM_IDENTITY_PRESENCE_SWEEP_BATCH_SIZE: ${IDENTITY_PRESENCE_SWEEP_BATCH_SIZE:-1000}
+      PLATFORM_IDENTITY_PRESENCE_SWEEP_DELAY_MS: ${IDENTITY_PRESENCE_SWEEP_DELAY_MS:-60000}
+      PLATFORM_ADMISSION_MAX_SSE_CONNECTIONS: ${PLATFORM_ADMISSION_MAX_SSE_CONNECTIONS:-256}
+      PLATFORM_ADMISSION_MAX_SSE_CONNECTIONS_PER_USER: ${PLATFORM_ADMISSION_MAX_SSE_CONNECTIONS_PER_USER:-4}
+      PLATFORM_ADMISSION_MAX_RATE_KEYS: ${PLATFORM_ADMISSION_MAX_RATE_KEYS:-20000}
+      PLATFORM_SYSTEM_ADMIN_JWT_ISSUER: ${SYSTEM_ADMIN_JWT_ISSUER:-spaceagent-platform-admin}
+      PLATFORM_SYSTEM_ADMIN_JWT_AUDIENCE: ${SYSTEM_ADMIN_JWT_AUDIENCE:-spaceagent-platform-admin-internal}
+      PLATFORM_SYSTEM_ADMIN_JWT_SECRET: ${SYSTEM_ADMIN_JWT_SECRET:-local-dev-system-admin-jwt-secret-change-me}
+      PLATFORM_SYSTEM_ADMIN_ALLOW_INSECURE_LOCAL: ${SYSTEM_ADMIN_ALLOW_INSECURE_LOCAL:-false}
+      PLATFORM_USER_DELETION_ENABLED: ${PLATFORM_USER_DELETION_ENABLED:-false}
+      PLATFORM_INFERENCE_MODEL_PROVIDER_ENCRYPTION_KEY: ${MODEL_PROVIDER_ENCRYPTION_KEY:-spaceagent-dev-model-provider-key-change-in-production}
+      PLATFORM_INFERENCE_MODEL_PROVIDER_PREVIOUS_ENCRYPTION_KEYS: ${MODEL_PROVIDER_PREVIOUS_ENCRYPTION_KEYS:-}
+      PLATFORM_INFERENCE_ALLOWED_PROVIDER_HOSTS: ${MODEL_PROVIDER_ALLOWED_HOSTS:-dashscope.aliyuncs.com,*.maas.aliyuncs.com,api.deepseek.com,api.openai.com}
+      PLATFORM_INFERENCE_ALLOW_LOCAL_PROVIDER_HOSTS: ${MODEL_PROVIDER_ALLOW_LOCALHOST:-false}
+      PLATFORM_INFERENCE_EXECUTION_MODE: http
+      PLATFORM_TOOLING_MCP_ENCRYPTION_KEY: ${MCP_CONNECTION_ENCRYPTION_KEY:-spaceagent-dev-mcp-connection-key-change-in-production}
+      PLATFORM_TOOLING_MCP_PREVIOUS_ENCRYPTION_KEYS: ${MCP_CONNECTION_PREVIOUS_ENCRYPTION_KEYS:-}
+      PLATFORM_TOOLING_MCP_ALLOWED_HOSTS: ${MCP_ALLOWED_HOSTS:-api.githubcopilot.com,github.com}
+      PLATFORM_MCP_REGISTRY_BASE_URL: ${MCP_REGISTRY_BASE_URL:-https://registry.modelcontextprotocol.io}
+      PLATFORM_MCP_REGISTRY_WORKER_ENABLED: ${MCP_REGISTRY_WORKER_ENABLED:-true}
+      PLATFORM_TOOLING_MCP_OAUTH_CLIENTS_0_ID: ${MCP_OAUTH_REGISTRATION_ID:-}
+      PLATFORM_TOOLING_MCP_OAUTH_CLIENTS_0_AUTHORIZATION_SERVER: ${MCP_OAUTH_AUTHORIZATION_SERVER:-}
+      PLATFORM_TOOLING_MCP_OAUTH_CLIENTS_0_CLIENT_ID: ${MCP_OAUTH_CLIENT_ID:-}
+      PLATFORM_TOOLING_MCP_OAUTH_CLIENTS_0_CLIENT_SECRET: ${MCP_OAUTH_CLIENT_SECRET:-}
+      PLATFORM_TOOLING_MCP_OAUTH_CLIENTS_0_AUTHENTICATION_METHOD: ${MCP_OAUTH_CLIENT_AUTHENTICATION_METHOD:-CLIENT_SECRET_POST}
+      PLATFORM_TOOLING_MCP_OAUTH_CLIENTS_0_SCOPES: ${MCP_OAUTH_SCOPES:-}
+      PLATFORM_TOOLING_MCP_OAUTH_CLIENTS_0_ALLOWED_REDIRECT_URIS: ${MCP_OAUTH_ALLOWED_REDIRECT_URIS:-}
+      PLATFORM_TOOLING_WEB_SEARCH_MODE: ${TOOLING_WEB_SEARCH_MODE:-none}
+      PLATFORM_TOOLING_WEB_SEARCH_BASE_URL: ${TOOLING_WEB_SEARCH_BASE_URL:-}
+      PLATFORM_GITHUB_MCP_CLIENT_ID: ${GITHUB_MCP_CLIENT_ID:-}
+      PLATFORM_GITHUB_MCP_CLIENT_SECRET: ${GITHUB_MCP_CLIENT_SECRET:-}
+      PLATFORM_GITHUB_MCP_ALLOWED_REDIRECT_URIS: ${GITHUB_MCP_ALLOWED_REDIRECT_URIS:-}
+      PLATFORM_GITHUB_MCP_SCOPES: ${GITHUB_MCP_SCOPES:-repo,read:user,read:org}
+      PLATFORM_WORKSPACE_MANAGED_ROOT: /data/workspaces
+      PLATFORM_ARTIFACT_OBJECT_MODE: ${ARTIFACT_OBJECT_MODE:-local}
+      PLATFORM_ARTIFACT_OBJECT_LOCAL_ROOT: /data/workspaces/artifact-objects
+      PLATFORM_ARTIFACT_OBJECT_ENDPOINT: ${ARTIFACT_OBJECT_ENDPOINT:-}
+      PLATFORM_ARTIFACT_OBJECT_ACCESS_KEY: ${ARTIFACT_OBJECT_ACCESS_KEY:-}
+      PLATFORM_ARTIFACT_OBJECT_SECRET_KEY: ${ARTIFACT_OBJECT_SECRET_KEY:-}
+      PLATFORM_ARTIFACT_OBJECT_BUCKET: ${ARTIFACT_OBJECT_BUCKET:-spaceagent-artifacts}
+      PLATFORM_ARTIFACT_OBJECT_ENCRYPTION_REFERENCE: ${ARTIFACT_OBJECT_ENCRYPTION_REFERENCE:-tenant-key:v1}
+      PLATFORM_ARTIFACT_OBJECT_MAXIMUM_OBJECT_BYTES: ${ARTIFACT_OBJECT_MAXIMUM_OBJECT_BYTES:-536870912}
+      PLATFORM_ARTIFACT_OBJECT_MAXIMUM_ACTIVE_STAGING_SESSIONS_PER_USER: ${ARTIFACT_OBJECT_MAXIMUM_ACTIVE_STAGING_SESSIONS_PER_USER:-10}
+      PLATFORM_ARTIFACT_OBJECT_MAXIMUM_ACTIVE_STAGING_BYTES_PER_USER: ${ARTIFACT_OBJECT_MAXIMUM_ACTIVE_STAGING_BYTES_PER_USER:-1073741824}
+      PLATFORM_ARTIFACT_OBJECT_MAXIMUM_ACTIVE_STAGING_SESSIONS_PER_TENANT: ${ARTIFACT_OBJECT_MAXIMUM_ACTIVE_STAGING_SESSIONS_PER_TENANT:-100}
+      PLATFORM_ARTIFACT_OBJECT_MAXIMUM_ACTIVE_STAGING_BYTES_PER_TENANT: ${ARTIFACT_OBJECT_MAXIMUM_ACTIVE_STAGING_BYTES_PER_TENANT:-10737418240}
+      PLATFORM_ARTIFACT_OBJECT_MAXIMUM_STORED_BYTES_PER_TENANT: ${ARTIFACT_OBJECT_MAXIMUM_STORED_BYTES_PER_TENANT:-53687091200}
+      PLATFORM_KNOWLEDGE_URL_REFRESH_LEASE_SECONDS: ${KNOWLEDGE_URL_REFRESH_LEASE_SECONDS:-300}
+      PLATFORM_PROJECT_INTAKE_WORKER_ENABLED: ${PROJECT_INTAKE_WORKER_ENABLED:-true}
+      PLATFORM_PROJECT_INTAKE_WORKER_ID: ${PROJECT_INTAKE_WORKER_ID:-}
+      PLATFORM_PROJECT_INTAKE_POLL_DELAY_MS: ${PROJECT_INTAKE_POLL_DELAY_MS:-1000}
+      PLATFORM_PROJECT_INTAKE_LEASE_SECONDS: ${PROJECT_INTAKE_LEASE_SECONDS:-900}
+      PLATFORM_PROJECT_INTAKE_MAXIMUM_ATTEMPTS: ${PROJECT_INTAKE_MAXIMUM_ATTEMPTS:-3}
+      PLATFORM_PROJECT_CODING_WORKER_ENABLED: ${PROJECT_CODING_WORKER_ENABLED:-true}
+      PLATFORM_PROJECT_CODING_WORKER_ID: ${PROJECT_CODING_WORKER_ID:-}
+      PLATFORM_PROJECT_CODING_POLL_DELAY_MS: ${PROJECT_CODING_POLL_DELAY_MS:-1000}
+      PLATFORM_PROJECT_CODING_LEASE_SECONDS: ${PROJECT_CODING_LEASE_SECONDS:-900}
+      PLATFORM_PROJECT_CODING_MAXIMUM_ATTEMPTS: ${PROJECT_CODING_MAXIMUM_ATTEMPTS:-3}
+      PLATFORM_PROJECT_CODING_MAXIMUM_ITERATIONS: ${PROJECT_CODING_MAXIMUM_ITERATIONS:-20}
+      PLATFORM_PROJECT_CODING_MAXIMUM_REVIEW_ROUNDS: ${PROJECT_CODING_MAXIMUM_REVIEW_ROUNDS:-2}
+      PLATFORM_KNOWLEDGE_EMBEDDING_MODE: http
+      PLATFORM_KNOWLEDGE_EMBEDDING_BASE_URL: ${AI_EMBEDDING_API_BASE_URL:-${OPENAI_BASE_URL:-${AI_API_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}}}
+      PLATFORM_KNOWLEDGE_EMBEDDING_API_KEY: ${AI_EMBEDDING_API_KEY:-${OPENAI_API_KEY:-${AI_API_KEY:-}}}
+      PLATFORM_KNOWLEDGE_EMBEDDING_MODEL: ${AI_EMBEDDING_MODEL:-text-embedding-v4}
+      PLATFORM_MULTI_AGENT_ORCHESTRATOR_INTERNAL_TOKEN: ${MULTI_AGENT_ORCHESTRATOR_INTERNAL_TOKEN:-${INTERNAL_SERVICE_TOKEN:-spaceagent-dev-internal-token-change-in-production}}
+      PLATFORM_MULTI_AGENT_ORCHESTRATOR_MODE: ${MULTI_AGENT_ORCHESTRATOR_MODE:-none}
+      PLATFORM_MULTI_AGENT_ORCHESTRATOR_BASE_URL: ${MULTI_AGENT_ORCHESTRATOR_BASE_URL:-http://host.docker.internal:9300}
+      PLATFORM_MULTI_AGENT_REASONING_MODE: ${MULTI_AGENT_REASONING_MODE:-deterministic}
+      PLATFORM_CHAT_AUTOMATIC_PLANNING_ENABLED: ${CHAT_AUTOMATIC_PLANNING_ENABLED:-false}
+      PLATFORM_SANDBOX_MODE: ${SANDBOX_MODE:-in-process}
+      PLATFORM_SANDBOX_BASE_URL: ${SANDBOX_BASE_URL:-http://sandbox-worker:9200}
+      PLATFORM_SANDBOX_INTERNAL_TOKEN: ${SANDBOX_INTERNAL_TOKEN:-${INTERNAL_SERVICE_TOKEN:-spaceagent-dev-internal-token-change-in-production}}
+      PLATFORM_ALLOW_INSECURE_LOCAL: ${PLATFORM_ALLOW_INSECURE_LOCAL:-false}
+      PLATFORM_RELEASE_MODE: ${PLATFORM_RELEASE_MODE:-development}
+      SPACEAGENT_RELEASE_VERSION: ${SPACEAGENT_RELEASE_VERSION:-dev}
+      PLATFORM_EXPECTED_SCHEMA_VERSION: ${PLATFORM_EXPECTED_SCHEMA_VERSION:-1098}
+      PLATFORM_KNOWLEDGE_INDEX_CONTENT_ROOT: /data/knowledge-index
+      PLATFORM_KNOWLEDGE_INDEX_INTAKE_ENABLED: ${PLATFORM_KNOWLEDGE_INDEX_INTAKE_ENABLED:-false}
+      PLATFORM_KNOWLEDGE_INDEX_WORKER_ENABLED: ${PLATFORM_KNOWLEDGE_INDEX_WORKER_ENABLED:-false}
+      PLATFORM_KNOWLEDGE_VECTOR_STORE_MODE: ${PLATFORM_KNOWLEDGE_VECTOR_STORE_MODE:-none}
+      PLATFORM_KNOWLEDGE_PGVECTOR_QUERY_TIMEOUT_SECONDS: ${PLATFORM_KNOWLEDGE_PGVECTOR_QUERY_TIMEOUT_SECONDS:-5}
+      PLATFORM_KNOWLEDGE_MILVUS_URI: ${PLATFORM_KNOWLEDGE_MILVUS_URI:-}
+      PLATFORM_KNOWLEDGE_MILVUS_TOKEN: ${PLATFORM_KNOWLEDGE_MILVUS_TOKEN:-}
+      PLATFORM_KNOWLEDGE_MILVUS_ALLOW_INSECURE_LOCAL: ${PLATFORM_KNOWLEDGE_MILVUS_ALLOW_INSECURE_LOCAL:-false}
+      PLATFORM_KNOWLEDGE_LEGACY_MODE: ${PLATFORM_KNOWLEDGE_LEGACY_MODE:-compatibility}
+      PLATFORM_KNOWLEDGE_MAX_DOCUMENTS: ${PLATFORM_KNOWLEDGE_MAX_DOCUMENTS:-10000}
+      PLATFORM_KNOWLEDGE_MAX_PENDING: ${PLATFORM_KNOWLEDGE_MAX_PENDING:-64}
+      PLATFORM_KNOWLEDGE_MAX_SOURCE_BYTES: ${PLATFORM_KNOWLEDGE_MAX_SOURCE_BYTES:-1073741824}
+      PLATFORM_RERANKER_MODE: ${PLATFORM_RERANKER_MODE:-none}
+      PLATFORM_RERANKER_URI: ${PLATFORM_RERANKER_URI:-}
+      PLATFORM_RERANKER_TOKEN: ${PLATFORM_RERANKER_TOKEN:-}
+      PLATFORM_RERANKER_MODEL: ${PLATFORM_RERANKER_MODEL:-}
+      PLATFORM_RERANKER_REVISION: ${PLATFORM_RERANKER_REVISION:-}
+      PLATFORM_RERANKER_ALLOW_PRIVATE_HTTP: ${PLATFORM_RERANKER_ALLOW_PRIVATE_HTTP:-false}
+      PLATFORM_TRUSTED_CODE_ONLY: ${PLATFORM_TRUSTED_CODE_ONLY:-true}
+      PLATFORM_PUBLIC_UNTRUSTED_CODE_ENABLED: ${PLATFORM_PUBLIC_UNTRUSTED_CODE_ENABLED:-false}
+      PLATFORM_OBSERVABILITY_TRACING_ENABLED: ${PLATFORM_OBSERVABILITY_TRACING_ENABLED:-true}
+      PLATFORM_OBSERVABILITY_TRACING_SAMPLING_PROBABILITY: ${PLATFORM_OBSERVABILITY_TRACING_SAMPLING_PROBABILITY:-0.10}
+      PLATFORM_OBSERVABILITY_OTLP_ENABLED: ${PLATFORM_OBSERVABILITY_OTLP_ENABLED:-false}
+      PLATFORM_OBSERVABILITY_OTLP_ENDPOINT: ${PLATFORM_OBSERVABILITY_OTLP_ENDPOINT:-http://tempo:4318/v1/traces}
+      PLATFORM_OBSERVABILITY_OPERATIONAL_METRICS_ENABLED: ${PLATFORM_OBSERVABILITY_OPERATIONAL_METRICS_ENABLED:-true}
+      PLATFORM_OBSERVABILITY_OPERATIONAL_METRICS_WINDOW: ${PLATFORM_OBSERVABILITY_OPERATIONAL_METRICS_WINDOW:-5m}
+      PLATFORM_OBSERVABILITY_OPERATIONAL_METRICS_REFRESH_DELAY_MS: ${PLATFORM_OBSERVABILITY_OPERATIONAL_METRICS_REFRESH_DELAY_MS:-15000}
+    volumes:
+      - platform-jvm-diagnostics:/app/diagnostics
+      - platform-workspaces:/data/workspaces
+      - platform-knowledge-index:/data/knowledge-index
+    depends_on:
+      database-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/actuator/health/readiness || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  # Optional Docker-API-owning sandbox control plane. It has no published port and must
+  # remain on the private Compose network. Child execution containers never receive the
+  # Docker socket; they mount only their exact Workspace volume subpath.
+  sandbox-worker:
+    build:
+      context: .
+      dockerfile: workers/sandbox-worker/Dockerfile
+    image: ${SANDBOX_WORKER_IMAGE:-spaceagent-sandbox-worker:local}
+    restart: unless-stopped
+    profiles: [sandbox]
+    environment:
+      SANDBOX_INTERNAL_TOKEN: ${SANDBOX_INTERNAL_TOKEN:-${INTERNAL_SERVICE_TOKEN:-spaceagent-dev-internal-token-change-in-production}}
+      SANDBOX_WORKSPACE_VOLUME: ${SANDBOX_WORKSPACE_VOLUME:-}
+      SANDBOX_OCI_RUNTIME: ${SANDBOX_OCI_RUNTIME:-}
+      SANDBOX_CONTAINER_USER: ${SANDBOX_CONTAINER_USER:-999:999}
+      SANDBOX_MAX_CONCURRENT_EXECUTIONS: ${SANDBOX_MAX_CONCURRENT_EXECUTIONS:-4}
+      SANDBOX_MAX_MEMORY_BYTES: ${SANDBOX_MAX_MEMORY_BYTES:-2147483648}
+      SANDBOX_NANO_CPUS: ${SANDBOX_NANO_CPUS:-1000000000}
+      SANDBOX_PIDS_LIMIT: ${SANDBOX_PIDS_LIMIT:-256}
+      SANDBOX_TMPFS_BYTES: ${SANDBOX_TMPFS_BYTES:-67108864}
+      PLATFORM_OBSERVABILITY_OTLP_ENABLED: ${PLATFORM_OBSERVABILITY_OTLP_ENABLED:-false}
+      PLATFORM_OBSERVABILITY_OTLP_ENDPOINT: ${PLATFORM_OBSERVABILITY_OTLP_ENDPOINT:-http://tempo:4318/v1/traces}
+    volumes:
+      - platform-workspaces:/data/workspaces
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9200/health', timeout=3).read()"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # Optional active Web/desktop-browser surface. It proxies /api to platform-server.
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_ADMIN_WEB_URL: ${ADMIN_WEB_PUBLIC_URL:-}
+    container_name: spaceagent-web
+    restart: unless-stopped
+    profiles: [web]
+    ports:
+      - "${WEB_HOST_PORT:-8080}:80"
+    depends_on:
+      platform-server:
+        condition: service_healthy
+
+  # ===========================================================================
+  # Observability Stack (profile: observability)
+  # ===========================================================================
+  prometheus:
+    image: prom/prometheus:v3.13.1
+    container_name: spaceagent-prometheus
+    restart: unless-stopped
+    profiles: [observability]
+    ports:
+      - "127.0.0.1:${PROMETHEUS_HOST_PORT:-9090}:9090"
+    volumes:
+      - ./docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/observability/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      - alertmanager
+
+  alertmanager:
+    image: prom/alertmanager:v0.34.0
+    container_name: spaceagent-alertmanager
+    restart: unless-stopped
+    profiles: [observability]
+    ports:
+      - "127.0.0.1:${ALERTMANAGER_HOST_PORT:-9093}:9093"
+    volumes:
+      - ./docker/observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+
+  grafana:
+    image: grafana/grafana:13.1.0
+    container_name: spaceagent-grafana
+    restart: unless-stopped
+    profiles: [observability]
+    ports:
+      - "127.0.0.1:${GRAFANA_HOST_PORT:-3000}:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-local-observability-only-change-me}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./docker/observability/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ./docker/observability/grafana/dashboards/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml:ro
+      - ./docker/observability/grafana/dashboards/:/var/lib/grafana/dashboards/:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+
+  loki:
+    image: grafana/loki:3.7.0
+    container_name: spaceagent-loki
+    restart: unless-stopped
+    profiles: [observability]
+    ports:
+      - "127.0.0.1:${LOKI_HOST_PORT:-3100}:3100"
+    volumes:
+      - ./docker/observability/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+
+  tempo-init:
+    image: busybox:1.37.0
+    profiles: [observability]
+    user: root
+    command: ["chown", "-R", "10001:10001", "/var/tempo"]
+    volumes:
+      - tempo-data:/var/tempo
+
+  tempo:
+    image: grafana/tempo:2.10.5
+    container_name: spaceagent-tempo
+    restart: unless-stopped
+    profiles: [observability]
+    command: -config.file=/etc/tempo.yaml
+    ports:
+      - "127.0.0.1:${TEMPO_HOST_PORT:-3200}:3200"
+      - "127.0.0.1:${OTLP_HTTP_HOST_PORT:-4318}:4318"
+    volumes:
+      - ./docker/observability/tempo.yml:/etc/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    depends_on:
+      tempo-init:
+        condition: service_completed_successfully
+
+  alloy:
+    image: grafana/alloy:v1.18.0
+    container_name: spaceagent-alloy
+    restart: unless-stopped
+    profiles: [observability]
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    ports:
+      - "127.0.0.1:12345:12345"
+    volumes:
+      - ./docker/observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - ./.run/logs:/var/log/spaceagent:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy-data:/var/lib/alloy/data
+    depends_on:
+      - loki
+
+volumes:
+  postgres-data:
+  platform-jvm-diagnostics:
+  platform-workspaces:
+  platform-knowledge-index:
+  prometheus-data:
+  alertmanager-data:
+  grafana-data:
+  loki-data:
+  tempo-data:
+  alloy-data:

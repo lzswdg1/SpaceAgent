@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# Deterministic read-only preflight fixture. Never contacts a daemon.
+if [ "$1" != info ]; then exit 99; fi
+printf '%s %s amd64\n' "$FIXTURE_RAM" "$FIXTURE_CPUS"

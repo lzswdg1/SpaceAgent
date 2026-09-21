@@ -1,0 +1,17 @@
+# M65-PR3-U03 coordination and restart selection
+PlatformRuntimeCoordinationPostgresTest
+PlatformRuntimeCoordinationTest
+PlatformRuntimeRecoveryTest
+ProjectPlanExecutionRecoveryWorkerTest
+ProjectPlanExecutionRepositoryTest
+AgentVersionActivationScheduleRepositoryTest
+GraphV2ContinuationApplicationTest
+AutomationEventExecutionApplicationServiceTest
+RuntimeCapabilityEffectReconciliationTest
+RuntimeToolReconciliationApplicationServiceTest
+ProjectReconciliationIntegrationServiceTest
+PlatformProjectRecoveryPostgresTest
+PostgresRuntimeCleanupServiceTest
+
+# Required assertions: multi-worker single claim, expired lease reclaim, stale fence rejection,
+# restart from PostgreSQL, exact terminal replay, UNKNOWN never blind-retried, graceful control recovery.

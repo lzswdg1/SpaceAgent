@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="theme-color" content="#050607" />
+<title>SpaceAgent — Project Workspace Concept</title>
+<style>
+:root{
+  --black:#050607;--panel:#090b0d;--panel-2:#0d1013;--warm:#f3f1ea;
+  --line:rgba(211,224,232,.11);--muted:rgba(243,241,234,.38);
+  --blue:#91a9bb;--amber:#c5a871;--green:#789c88;--ease:cubic-bezier(.16,1,.3,1);
+  --sans:"Inter","Helvetica Neue","Noto Sans SC","Noto Sans JP",-apple-system,BlinkMacSystemFont,sans-serif
+}
+*{box-sizing:border-box}
+html{background:var(--black);color:var(--warm);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body{margin:0;min-width:320px;overflow-x:hidden;overflow-y:auto;background:var(--black);scrollbar-width:thin;scrollbar-color:rgba(180,200,212,.18) transparent}
+button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}
+button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:1px solid var(--warm);outline-offset:3px}
+.noise{position:fixed;inset:0;z-index:50;pointer-events:none;opacity:.12;background-image:radial-gradient(rgba(235,240,242,.17) .35px,transparent .55px);background-size:4px 4px;mix-blend-mode:soft-light}
+.brand{display:inline-flex;align-items:baseline;letter-spacing:-.04em;font-size:19px}.brand b{font-weight:540}.brand span{font-weight:390;opacity:.88}
+.workspace-shell{min-height:100vh;display:grid;grid-template-columns:210px 320px minmax(540px,1fr) 292px;align-items:start;transition:grid-template-columns .62s var(--ease)}
+
+/* global control rail */
+.global-sidebar{position:sticky;top:0;height:100vh;z-index:10;padding:28px 18px 20px;display:flex;flex-direction:column;border-right:1px solid var(--line);background:rgba(5,6,7,.97);overflow:hidden;transition:opacity .38s var(--ease),transform .62s var(--ease),padding .62s var(--ease)}
+.global-brand{padding:0 10px 26px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+.global-brand small{color:rgba(243,241,234,.27);font-size:8px;letter-spacing:.14em}
+.global-nav{padding:18px 0;display:grid;gap:4px;overflow-y:auto;scrollbar-width:none}.global-nav::-webkit-scrollbar{display:none}
+.nav-label{margin:16px 12px 5px;color:rgba(185,203,214,.24);font-size:8px;letter-spacing:.17em;text-transform:uppercase}.nav-label:first-child{margin-top:0}
+.global-nav>a{position:relative;padding:11px 10px 11px 36px;color:rgba(243,241,234,.35);font-size:10px;transition:.3s var(--ease)}
+.global-nav>a:before{content:"";position:absolute;left:12px;top:50%;width:7px;height:7px;border:1px solid rgba(194,210,220,.24);border-radius:50%;transform:translateY(-50%)}
+.global-nav>a:hover{color:var(--warm)}.global-nav>a.active{color:var(--warm);background:rgba(145,169,187,.08)}
+.global-nav>a.active:before{background:var(--warm);border-color:var(--warm);box-shadow:0 0 0 5px rgba(199,215,225,.06),0 0 14px rgba(180,205,220,.24)}
+.nav-mode{margin:5px 7px 8px 11px;padding:3px;display:grid;grid-template-columns:1fr 1fr;gap:3px;border:1px solid var(--line);background:rgba(145,169,187,.03)}
+.nav-mode a{height:29px;display:grid;place-items:center;color:rgba(243,241,234,.32);font-size:9px}.nav-mode a.active{background:var(--warm);color:var(--black)}
+.global-bottom{margin-top:auto}.system-readout{padding:12px;margin-bottom:10px;border:1px solid var(--line);display:grid;gap:7px;color:rgba(243,241,234,.28);font-size:8px;letter-spacing:.1em;text-transform:uppercase}
+.system-readout div{display:flex;justify-content:space-between}.system-readout b{color:var(--green);font-weight:450}
+.operator{padding:11px;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:center;border-top:1px solid var(--line)}
+.operator-avatar{width:27px;height:27px;border:1px solid rgba(243,241,234,.2);border-radius:50%;display:grid;place-items:center;font-size:8px}.operator b{display:block;font-size:10px;font-weight:500}.operator small{color:rgba(243,241,234,.28);font-size:8px}
+
+/* project hierarchy */
+.project-rail{position:sticky;top:0;height:100vh;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--line);background:#080a0c;overflow:hidden;transition:opacity .38s var(--ease),transform .62s var(--ease)}
+.rail-head{height:74px;padding:16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+.rail-title span{display:block;color:rgba(243,241,234,.3);font-size:8px;letter-spacing:.15em;text-transform:uppercase}.rail-title b{display:block;margin-top:5px;font-size:14px;font-weight:460}
+.new-project{width:32px;height:32px;border:1px solid rgba(243,241,234,.18);background:transparent;font-size:18px}.new-project:hover{background:var(--warm);color:var(--black)}
+.project-search{margin:14px 14px 8px;height:36px;padding:0 12px;border:1px solid var(--line);display:flex;align-items:center;gap:9px}
+.project-search:before{content:"";width:8px;height:8px;border:1px solid rgba(243,241,234,.34);border-radius:50%;box-shadow:5px 5px 0 -4px rgba(243,241,234,.34)}
+.project-search input{min-width:0;width:100%;border:0;outline:0;background:transparent;font-size:9px}.project-search input::placeholder{color:rgba(243,241,234,.22)}
+.tree-label{padding:11px 17px 7px;display:flex;justify-content:space-between;color:rgba(193,210,220,.25);font-size:7px;letter-spacing:.15em;text-transform:uppercase}
+.project-tree{padding:0 10px 18px;overflow-y:auto;scrollbar-width:none}.project-tree::-webkit-scrollbar{display:none}
+.project-block{border-bottom:1px solid rgba(211,224,232,.07)}
+.project-node{width:100%;padding:14px 10px;border:0;background:transparent;display:grid;grid-template-columns:18px 1fr auto;gap:9px;align-items:center;text-align:left;color:rgba(243,241,234,.5)}
+.project-node:hover,.project-block.open>.project-node{color:var(--warm)}
+.folder-mark{position:relative;width:15px;height:11px;border:1px solid rgba(197,215,225,.35);border-radius:1px}.folder-mark:before{content:"";position:absolute;left:1px;top:-4px;width:6px;height:3px;border:1px solid rgba(197,215,225,.35);border-bottom:0}
+.project-block.open .folder-mark{border-color:var(--blue);box-shadow:0 0 14px rgba(145,169,187,.12)}
+.project-copy b{display:block;font-size:10px;font-weight:500}.project-copy small{display:block;margin-top:5px;color:rgba(243,241,234,.22);font-size:7px;letter-spacing:.04em}
+.project-node em{font-style:normal;color:rgba(243,241,234,.22);font-size:9px;transition:transform .35s var(--ease)}.project-block.open .project-node em{transform:rotate(90deg)}
+.thread-list{display:none;margin:0 0 10px 17px;padding-left:11px;border-left:1px solid rgba(145,169,187,.14)}.project-block.open .thread-list{display:grid}
+.thread-item{position:relative;width:100%;padding:11px 10px;border:0;background:transparent;text-align:left;color:rgba(243,241,234,.31)}
+.thread-item:hover{color:rgba(243,241,234,.7);background:rgba(145,169,187,.035)}.thread-item.active{color:var(--warm);background:rgba(145,169,187,.08)}
+.thread-item.active:before{content:"";position:absolute;left:-12px;top:14px;width:5px;height:5px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px rgba(145,169,187,.07)}
+.thread-item b{display:block;font-size:9px;font-weight:480;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.thread-item span{margin-top:6px;display:flex;justify-content:space-between;gap:10px;color:rgba(243,241,234,.2);font-size:7px}.thread-item i{font-style:normal;color:rgba(120,156,136,.72)}
+.rail-foot{margin-top:auto;padding:13px 15px;border-top:1px solid var(--line);color:rgba(243,241,234,.24);font-size:8px}.rail-foot span{display:flex;justify-content:space-between}.rail-foot i{color:var(--green);font-style:normal}
+
+/* focused project conversation */
+.project-main{position:relative;min-width:0;min-height:100vh;display:grid;grid-template-rows:74px 45px auto auto;background:radial-gradient(circle at 56% 32%,rgba(96,123,140,.055),transparent 38%),var(--black)}
+.project-head{padding:0 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+.head-left{min-width:0;display:flex;align-items:center;gap:13px}.panel-toggle{flex:0 0 auto;width:30px;height:30px;border:1px solid var(--line);background:transparent;color:rgba(243,241,234,.46);font-size:13px;line-height:1}.panel-toggle:hover,.panel-toggle.is-collapsed{background:var(--warm);color:var(--black);border-color:var(--warm)}
+.project-identity{min-width:0}.project-identity span{display:block;color:rgba(193,210,220,.34);font-size:8px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.project-identity b{display:block;margin-top:6px;font-size:14px;font-weight:470;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.head-status{display:flex;align-items:center;gap:8px}.status-chip{height:28px;padding:0 9px;border:1px solid var(--line);display:flex;align-items:center;gap:7px;background:transparent;color:rgba(243,241,234,.4);font-size:8px;letter-spacing:.07em;text-transform:uppercase}.status-chip i{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 10px rgba(120,156,136,.5)}
+.context-bar{padding:0 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(211,224,232,.07);color:rgba(243,241,234,.26);font-size:8px;letter-spacing:.06em}.context-path{min-width:0;display:flex;align-items:center;gap:9px;white-space:nowrap;overflow:hidden}.context-path b{color:rgba(243,241,234,.64);font-weight:450}.context-path i{width:1px;height:13px;background:var(--line)}.sync-state{display:flex;align-items:center;gap:8px;color:var(--green)}.sync-state:before{content:"";width:5px;height:5px;border-radius:50%;background:var(--green)}
+.chat-log{min-height:calc(100vh - 119px);padding:34px clamp(22px,4vw,58px) 42px;overflow:visible}.log-boundary{max-width:840px;margin:0 auto}
+.session-open{margin-bottom:32px;display:flex;align-items:center;gap:14px;color:rgba(243,241,234,.23);font-size:8px;letter-spacing:.15em;text-transform:uppercase}.session-open:before,.session-open:after{content:"";height:1px;flex:1;background:var(--line)}
+.message{position:relative;margin:0 0 33px;padding-left:84px}.message-meta{position:absolute;left:0;top:2px;width:66px;color:rgba(190,207,218,.31);font-size:7px;line-height:1.5;letter-spacing:.1em;text-transform:uppercase}.message-body{font-size:13px;line-height:1.75;color:rgba(243,241,234,.82)}
+.message.operator-message{padding-left:0;padding-right:84px;text-align:right}.operator-message .message-meta{left:auto;right:0;text-align:right}.operator-message .message-body{display:inline-block;max-width:640px;padding:14px 16px;border:1px solid rgba(243,241,234,.13);background:rgba(243,241,234,.035);text-align:left}
+.agent-marker{position:absolute;left:70px;top:4px;width:5px;height:5px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 5px rgba(145,169,187,.07)}
+.project-evidence{margin-top:18px;border:1px solid var(--line);background:rgba(11,14,16,.78)}.evidence-head{height:38px;padding:0 13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);font-size:8px;letter-spacing:.09em;text-transform:uppercase}.evidence-head span{color:rgba(243,241,234,.4)}.evidence-head b{color:var(--green);font-weight:450}
+.file-grid{display:grid;grid-template-columns:1fr 1fr}.file-cell{min-width:0;padding:12px 13px;border-right:1px solid rgba(211,224,232,.07);border-bottom:1px solid rgba(211,224,232,.07)}.file-cell:nth-child(2n){border-right:0}.file-cell:nth-last-child(-n+2){border-bottom:0}.file-cell span{display:block;color:rgba(243,241,234,.28);font-size:7px;letter-spacing:.08em;text-transform:uppercase}.file-cell b{display:block;margin-top:7px;overflow:hidden;text-overflow:ellipsis;color:rgba(243,241,234,.66);font-size:8px;font-weight:450;white-space:nowrap}
+.tool-trace{position:relative;margin:18px 0 33px 84px;padding:12px 14px;overflow:hidden;border-left:1px solid var(--amber);background:linear-gradient(90deg,rgba(197,168,113,.055),transparent);display:flex;justify-content:space-between;align-items:center;color:rgba(243,241,234,.35);font-size:8px}.tool-trace b{color:rgba(243,241,234,.72);font-weight:450}.tool-trace span:last-child{color:var(--amber)}.tool-trace:after{content:"";position:absolute;left:0;bottom:0;width:22%;height:1px;background:var(--amber);animation:scan 7s var(--ease) infinite}
+.handoff{margin-left:84px;padding:13px;border:1px solid rgba(120,156,136,.15);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;background:rgba(120,156,136,.035)}.handoff span{color:rgba(243,241,234,.35);font-size:8px}.handoff b{display:block;margin-top:5px;color:rgba(243,241,234,.7);font-size:9px;font-weight:450}.handoff em{color:var(--green);font-size:8px;font-style:normal}
+.composer-wrap{padding:18px clamp(18px,3vw,36px) 36px;background:linear-gradient(transparent,rgba(5,6,7,.94) 28%)}.composer{max-width:880px;margin:0 auto;border:1px solid rgba(213,225,232,.18);background:rgba(11,13,15,.94);box-shadow:0 22px 60px rgba(0,0,0,.32)}
+.composer textarea{width:100%;height:38px;min-height:38px;max-height:76px;padding:10px 18px 6px;resize:none;overflow-y:auto;border:0;outline:0;background:transparent;font-size:12px;line-height:1.6;transition:height .18s var(--ease)}.composer textarea::placeholder{color:rgba(243,241,234,.24)}
+.composer-bar{height:44px;padding:0 10px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(211,224,232,.08)}.composer-tools,.composer-actions{display:flex;align-items:center;gap:6px}.composer-button{height:28px;padding:0 9px;border:1px solid var(--line);background:transparent;color:rgba(243,241,234,.38);font-size:8px}.composer-button:hover{color:var(--warm);border-color:rgba(243,241,234,.3)}.send-button{width:30px;height:30px;border:1px solid var(--warm);background:var(--warm);color:var(--black);font-size:15px}.send-button:hover{background:transparent;color:var(--warm)}
+
+/* project inspector */
+.inspector{position:sticky;top:0;height:100vh;min-width:0;border-left:1px solid var(--line);background:#080a0c;overflow-y:auto;scrollbar-width:none;transition:opacity .38s var(--ease),transform .62s var(--ease)}.inspector::-webkit-scrollbar{display:none}
+.inspector-head{height:74px;padding:0 17px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.inspector-head span{font-size:10px;letter-spacing:.12em;text-transform:uppercase}.inspector-head small{color:var(--green);font-size:8px}
+.inspect-section{padding:18px;border-bottom:1px solid var(--line)}.inspect-label{margin-bottom:14px;color:rgba(193,210,220,.32);font-size:8px;letter-spacing:.14em;text-transform:uppercase}
+.project-card{padding:13px;border:1px solid var(--line);background:rgba(145,169,187,.025)}.project-card-head{display:grid;grid-template-columns:30px 1fr;gap:11px;align-items:center}.project-sigil{position:relative;width:28px;height:22px;border:1px solid rgba(145,169,187,.32)}.project-sigil:before,.project-sigil:after{content:"";position:absolute;border:1px solid rgba(145,169,187,.16)}.project-sigil:before{inset:4px -5px -5px 4px}.project-sigil:after{inset:8px -9px -9px 8px}.project-card b{display:block;font-size:10px;font-weight:500}.project-card small{display:block;margin-top:5px;color:rgba(243,241,234,.27);font-size:8px}.project-meta{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:7px}.project-meta div{padding-top:9px;border-top:1px solid rgba(211,224,232,.08)}.project-meta span{display:block;color:rgba(243,241,234,.25);font-size:7px;text-transform:uppercase}.project-meta strong{display:block;margin-top:5px;font-size:9px;font-weight:450}
+.agent-stack{display:grid;gap:8px}.agent-route{width:100%;padding:10px;border:1px solid rgba(211,224,232,.08);background:transparent;display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;text-align:left;color:rgba(243,241,234,.38)}.agent-route:hover{border-color:rgba(243,241,234,.22)}.agent-route.active{border-color:rgba(145,169,187,.3);background:rgba(145,169,187,.06);color:var(--warm)}
+.agent-node{width:27px;height:27px;border:1px solid rgba(243,241,234,.18);border-radius:50%;display:grid;place-items:center;font-size:7px}.agent-route.active .agent-node{border-color:var(--blue);box-shadow:0 0 0 4px rgba(145,169,187,.05)}.agent-route b{display:block;font-size:9px;font-weight:480}.agent-route small{display:block;margin-top:4px;color:rgba(243,241,234,.25);font-size:7px}.agent-route em{color:rgba(243,241,234,.22);font-size:7px;font-style:normal;text-transform:uppercase}.agent-route.active em{color:var(--green)}
+.scope-list{display:grid;gap:8px}.scope-row{padding:9px 10px;border:1px solid rgba(211,224,232,.08);display:grid;grid-template-columns:1fr auto;gap:10px;font-size:8px}.scope-row span{min-width:0;overflow:hidden;text-overflow:ellipsis;color:rgba(243,241,234,.46);white-space:nowrap}.scope-row b{color:rgba(243,241,234,.26);font-weight:450}.scope-row.changed b{color:var(--amber)}
+.context-meter{position:relative;height:2px;margin:20px 0 14px;background:rgba(243,241,234,.07)}.context-meter i{position:absolute;inset:0 auto 0 0;width:42%;background:var(--blue);box-shadow:0 0 12px rgba(145,169,187,.3)}.context-numbers{display:flex;justify-content:space-between;font-size:8px}.context-numbers span{color:rgba(243,241,234,.27)}.context-numbers b{font-weight:450}
+
+@keyframes scan{0%{transform:translateX(-120%)}70%,100%{transform:translateX(560%)}}
+@media(min-width:1341px){.workspace-shell.left-collapsed{grid-template-columns:0 0 minmax(540px,1fr) 292px}.workspace-shell.inspector-collapsed{grid-template-columns:210px 320px minmax(540px,1fr) 0}.workspace-shell.left-collapsed.inspector-collapsed{grid-template-columns:0 0 minmax(540px,1fr) 0}.workspace-shell.left-collapsed .global-sidebar,.workspace-shell.left-collapsed .project-rail{opacity:0;transform:translateX(-28px);padding-inline:0;border:0;pointer-events:none}.workspace-shell.inspector-collapsed .inspector{opacity:0;transform:translateX(28px);border:0;pointer-events:none}}
+@media(max-width:1340px){.workspace-shell{grid-template-columns:76px 270px minmax(500px,1fr)}.inspector{display:none}.global-sidebar{padding-inline:11px}.global-brand{justify-content:center;padding-inline:0}.global-brand .brand,.global-brand small,.global-nav>a span,.nav-label,.nav-mode,.system-readout,.operator>div{display:none}.global-nav>a{height:43px;padding:0}.global-nav>a:before{left:50%;transform:translate(-50%,-50%)}.operator{display:flex;justify-content:center;padding-inline:0}.toggle-inspector{display:none}.workspace-shell.left-collapsed{grid-template-columns:0 0 minmax(0,1fr)}.workspace-shell.left-collapsed .global-sidebar,.workspace-shell.left-collapsed .project-rail{opacity:0;transform:translateX(-24px);pointer-events:none}}
+@media(max-width:840px){.workspace-shell{grid-template-columns:70px 230px minmax(430px,1fr)}.message{padding-left:70px}.message-meta{width:54px}.agent-marker{left:57px}.tool-trace,.handoff{margin-left:70px}.context-path span:nth-last-child(-n+2){display:none}}
+@media(max-width:720px){body{overflow:auto}.workspace-shell{height:auto;min-height:100vh;display:block}.global-sidebar{position:fixed;inset:auto 0 0;z-index:30;width:100%;height:62px;padding:0 14px;border:0;border-top:1px solid var(--line)}.global-brand,.global-bottom{display:none}.global-nav{height:62px;padding:0;grid-template-columns:repeat(4,1fr);align-items:center;overflow:visible}.global-nav .nav-secondary,.nav-label{display:none}.global-nav>a{height:46px}.project-rail,.inspector{display:none}.project-main{min-height:100vh;grid-template-rows:66px 42px minmax(0,1fr) auto}.project-head{padding-inline:15px}.status-chip:nth-child(-n+2){display:none}.panel-toggle{display:none}.chat-log{max-height:none;padding:26px 18px 180px}.message,.message.operator-message{padding-inline:0}.message-meta,.agent-marker{position:static;width:auto;margin-bottom:7px;text-align:left}.operator-message .message-meta{position:static;text-align:right}.tool-trace,.handoff{margin-left:0}.composer-wrap{position:fixed;left:0;right:0;bottom:62px;z-index:20;padding:0 12px 12px}.composer-tools .composer-button:nth-child(n+3){display:none}}
+:root{--type-micro:9px;--type-small:10px;--type-ui:12px;--type-body:15px;--type-title:16px}
+.brand{font-size:20px}.global-nav>a{font-size:11px}.nav-label,.rail-title span,.project-identity span,.status-chip,.tree-label,.session-open,.inspect-label{font-size:var(--type-micro)}.rail-title b,.project-identity b{font-size:var(--type-title)}.project-search input{font-size:var(--type-small)}.project-copy b,.thread-item b{font-size:var(--type-ui)}.project-copy small,.thread-item span,.rail-foot,.context-bar{font-size:var(--type-micro)}.message-body{font-size:var(--type-body);line-height:1.78}.message-meta{font-size:var(--type-micro)}.log-boundary{max-width:920px}.operator-message .message-body{max-width:700px;padding:16px 18px}.evidence-head,.file-cell span,.file-cell b,.tool-trace,.handoff span,.handoff em,.composer-button,.project-meta span,.scope-row,.context-numbers{font-size:var(--type-micro)}.composer textarea{font-size:14px}.inspector-head span,.project-card b,.agent-route b{font-size:var(--type-small)}.project-card small,.agent-route small,.agent-route em{font-size:var(--type-micro)}
+@media(min-width:1341px){.workspace-shell{grid-template-columns:210px 320px minmax(600px,1fr) 304px}.workspace-shell.nav-collapsed{grid-template-columns:0 320px minmax(600px,1fr) 304px}.workspace-shell.inspector-collapsed{grid-template-columns:210px 320px minmax(600px,1fr) 0}.workspace-shell.nav-collapsed.inspector-collapsed{grid-template-columns:0 320px minmax(600px,1fr) 0}.workspace-shell.nav-collapsed .global-sidebar{opacity:0;transform:translateX(-28px);padding-inline:0;border:0;pointer-events:none}}
+@media(min-width:841px) and (max-width:1340px){.workspace-shell{grid-template-columns:76px 300px minmax(500px,1fr)}.workspace-shell.nav-collapsed{grid-template-columns:0 300px minmax(0,1fr)}.workspace-shell.nav-collapsed .global-sidebar{opacity:0;transform:translateX(-24px);pointer-events:none}}
+@media(min-width:721px) and (max-width:840px){.workspace-shell{grid-template-columns:70px 260px minmax(430px,1fr)}.workspace-shell.nav-collapsed{grid-template-columns:0 260px minmax(0,1fr)}.workspace-shell.nav-collapsed .global-sidebar{opacity:0;transform:translateX(-24px);pointer-events:none}}
+@media(min-width:721px){.rail-head,.inspector-head{height:82px}.project-main{grid-template-rows:82px 48px auto auto}.chat-log{min-height:calc(100vh - 130px)}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+@media(min-width:1341px){.global-nav>a:before{display:none}.global-nav>a{padding-left:12px}}
+.global-nav,.project-tree{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+</style>
+<link rel="stylesheet" href="spaceagent-platform-theme.css"/><script src="spaceagent-platform-theme.js" defer></script></head>
+<body>
+<div class="noise" aria-hidden="true"></div>
+<div class="workspace-shell nav-collapsed inspector-collapsed" id="workspace-shell">
+  <aside class="global-sidebar">
+    <div class="global-brand"><a class="brand" href="spaceagent-dashboard-concept.html" data-prototype-link="spaceagent-dashboard-concept.html"><b>Space</b><span>Agent</span></a><small>SA/04</small></div>
+    <nav class="global-nav">
+      <div class="nav-label" data-i18n="core">Core</div>
+      <a href="spaceagent-dashboard-concept.html" data-prototype-link="spaceagent-dashboard-concept.html"><span data-i18n="overview">Overview</span></a>
+      <a class="active" href="spaceagent-project-workspace-concept.html" data-prototype-link="spaceagent-project-workspace-concept.html"><span data-i18n="workspace">Workspace</span></a>
+      <div class="nav-mode"><a href="spaceagent-chat-workspace-concept.html" data-prototype-link="spaceagent-chat-workspace-concept.html" data-i18n="chat">Chat</a><a class="active" href="spaceagent-project-workspace-concept.html" data-prototype-link="spaceagent-project-workspace-concept.html" data-i18n="project">Project</a></div>
+      <a href="spaceagent-agent-config-concept.html" data-prototype-link="spaceagent-agent-config-concept.html"><span data-i18n="agents">Agents</span></a>
+      <a href="spaceagent-mcp-market-concept.html" data-prototype-link="spaceagent-mcp-market-concept.html"><span data-i18n="mcp">MCP Market</span></a>
+      <div class="nav-label nav-secondary" data-i18n="operate">Operate</div>
+      <a class="nav-secondary" href="spaceagent-run-tracing-concept.html" data-prototype-link="spaceagent-run-tracing-concept.html"><span data-i18n="tracing">Run Tracing</span></a>
+      <a class="nav-secondary" href="#"><span data-i18n="automation">Automation</span></a>
+      <a class="nav-secondary" href="spaceagent-knowledge-base-concept.html" data-prototype-link="spaceagent-knowledge-base-concept.html"><span data-i18n="knowledge">Knowledge</span></a>
+      <div class="nav-label nav-secondary" data-i18n="control">Control</div>
+      <a class="nav-secondary" href="spaceagent-model-resources-concept.html" data-prototype-link="spaceagent-model-resources-concept.html"><span data-i18n="models">Model Resources</span></a>
+      <a class="nav-secondary" href="spaceagent-credentials-concept.html" data-prototype-link="spaceagent-credentials-concept.html"><span data-i18n="credentials">Credentials</span></a>
+      <a class="nav-secondary" href="spaceagent-organization-settings-concept.html" data-prototype-link="spaceagent-organization-settings-concept.html"><span data-i18n="organization">Organization</span></a>
+    </nav>
+    <div class="global-bottom"><div class="system-readout"><div><span>PLATFORM</span><b>ONLINE</b></div><div><span>WORKSPACES</span><b>03</b></div></div><div class="operator"><span class="operator-avatar">ZW</span><div><b>Orbit Lab</b><small>Owner / Core</small></div></div></div>
+  </aside>
+
+  <aside class="project-rail">
+    <header class="rail-head"><div class="rail-title"><span data-i18n="workspaceProject">Workspace / Project</span><b data-i18n="projectExplorer">Project explorer</b></div><button class="new-project" type="button" aria-label="New project">+</button></header>
+    <label class="project-search"><input type="search" data-i18n-placeholder="searchProjects" placeholder="Search projects or sessions" /></label>
+    <div class="tree-label"><span data-i18n="projectFolders">Project folders</span><span>03 / ACTIVE</span></div>
+    <div class="project-tree">
+      <section class="project-block open">
+        <button class="project-node" type="button"><span class="folder-mark"></span><span class="project-copy"><b>spaceagent-v2</b><small>main · 4 <span data-i18n="sessionsLower">sessions</span></small></span><em>›</em></button>
+        <div class="thread-list">
+          <button class="thread-item active" type="button" data-title-key="threadRelease" data-thread="THREAD-08" data-agent="Release Guardian" data-model="Qwen Primary"><b data-i18n="threadRelease">Release boundary</b><span><span>Release Guardian</span><i>LIVE</i></span></button>
+          <button class="thread-item" type="button" data-title-key="threadSchema" data-thread="THREAD-07" data-agent="Repo Cartographer" data-model="DeepSeek Pool"><b data-i18n="threadSchema">Schema migration map</b><span><span>Repo Cartographer</span><span>18 MIN</span></span></button>
+          <button class="thread-item" type="button" data-title-key="threadMemory" data-thread="THREAD-05" data-agent="Knowledge Scout" data-model="Qwen Primary"><b data-i18n="threadMemory">Memory ownership audit</b><span><span>Knowledge Scout</span><span>2 H</span></span></button>
+          <button class="thread-item" type="button" data-title-key="threadRuntime" data-thread="THREAD-02" data-agent="Runtime Reviewer" data-model="Review Pool"><b data-i18n="threadRuntime">Runtime recovery</b><span><span>Runtime Reviewer</span><span>1 D</span></span></button>
+        </div>
+      </section>
+      <section class="project-block">
+        <button class="project-node" type="button"><span class="folder-mark"></span><span class="project-copy"><b>browser-runtime</b><small>develop · 2 <span data-i18n="sessionsLower">sessions</span></small></span><em>›</em></button>
+        <div class="thread-list">
+          <button class="thread-item" type="button" data-title-key="threadBrowser" data-thread="THREAD-03" data-agent="Runtime Reviewer" data-model="Review Pool"><b data-i18n="threadBrowser">Browser isolation plan</b><span><span>Runtime Reviewer</span><span>4 H</span></span></button>
+          <button class="thread-item" type="button" data-title-key="threadTracing" data-thread="THREAD-01" data-agent="Repo Cartographer" data-model="DeepSeek Pool"><b data-i18n="threadTracing">Trace transport</b><span><span>Repo Cartographer</span><span>3 D</span></span></button>
+        </div>
+      </section>
+      <section class="project-block">
+        <button class="project-node" type="button"><span class="folder-mark"></span><span class="project-copy"><b>docs-release</b><small>release · 1 <span data-i18n="sessionsLower">session</span></small></span><em>›</em></button>
+        <div class="thread-list">
+          <button class="thread-item" type="button" data-title-key="threadNotes" data-thread="THREAD-01" data-agent="Knowledge Scout" data-model="Qwen Primary"><b data-i18n="threadNotes">Release notes evidence</b><span><span>Knowledge Scout</span><span>5 D</span></span></button>
+        </div>
+      </section>
+    </div>
+    <footer class="rail-foot"><span><span data-i18n="managedRoot">Managed project root</span><i>SYNCED</i></span></footer>
+  </aside>
+
+  <main class="project-main">
+    <header class="project-head">
+      <div class="head-left"><button class="panel-toggle is-collapsed" id="toggle-left" type="button" aria-label="Expand navigation">⟫</button><div class="project-identity"><span id="project-path">PROJECT / SPACEAGENT-V2 / THREAD-08</span><b id="thread-title" data-i18n="threadRelease">Release boundary</b></div></div>
+      <div class="head-status"><span class="status-chip"><i></i><span id="header-agent">Release Guardian</span></span><span class="status-chip" id="header-model">Qwen Primary</span><button class="status-chip" id="language-button" type="button">EN</button><button class="panel-toggle toggle-inspector is-collapsed" id="toggle-inspector" type="button" aria-label="Expand inspector">⟪</button></div>
+    </header>
+    <div class="context-bar"><div class="context-path"><span data-i18n="root">ROOT</span><b>/apps/platform-server</b><i></i><span>main</span><i></i><span>V1035</span></div><div class="sync-state" data-i18n="contextCompiled">Project context compiled</div></div>
+    <section class="chat-log" id="chat-log">
+      <div class="log-boundary">
+        <div class="session-open"><span data-i18n="opened">Conversation opened inside spaceagent-v2</span></div>
+        <article class="message operator-message"><div class="message-meta">OPERATOR<br>11:08:14</div><div class="message-body" data-i18n="operatorMessage">Review the release boundary as a project-level task. Keep every recommendation traceable to the repository and its architecture rules.</div></article>
+        <article class="message agent-message"><span class="agent-marker"></span><div class="message-meta">AGENT / 01<br>11:08:19</div><div class="message-body"><span data-i18n="agentMessage">I have bound this conversation to the project root, current branch, architecture rules, and release evidence. I’ll inspect the four scopes below before proposing a change.</span><div class="project-evidence"><div class="evidence-head"><span data-i18n="projectScope">Project scope</span><b data-i18n="bound">BOUND</b></div><div class="file-grid"><div class="file-cell"><span>RUNTIME</span><b>apps/platform-server</b></div><div class="file-cell"><span>ORCHESTRATION</span><b>services/multi-agent-orchestrator</b></div><div class="file-cell"><span>RULES</span><b>docs/architecture</b></div><div class="file-cell"><span>EVIDENCE</span><b>.agent/CURRENT.md</b></div></div></div></div></article>
+        <div class="tool-trace"><span><b>TOOL / repository.scope</b> · 4.8s</span><span data-i18n="completed">COMPLETED</span></div>
+        <article class="message agent-message"><span class="agent-marker"></span><div class="message-meta">AGENT / 02<br>11:08:31</div><div class="message-body"><span data-i18n="agentMessage2">The active release path is coherent. The remaining work is evidence consolidation, not another runtime refactor. I’m handing the documentation pass to Knowledge Scout while keeping architecture ownership here.</span><div class="handoff"><span><span data-i18n="handoff">Agent handoff</span><b>Release Guardian → Knowledge Scout</b></span><em data-i18n="accepted">ACCEPTED</em></div></div></article>
+      </div>
+    </section>
+    <div class="composer-wrap"><div class="composer"><textarea id="composer-input" data-i18n-placeholder="composer" placeholder="Describe the next project objective…"></textarea><div class="composer-bar"><div class="composer-tools"><button class="composer-button" type="button">＋</button><button class="composer-button" type="button">spaceagent-v2</button><button class="composer-button" type="button" id="composer-agent">Release Guardian</button><button class="composer-button" type="button" data-i18n="attachFiles">Attach files</button></div><div class="composer-actions"><span class="composer-button">42% CTX</span><button class="send-button" id="send-button" type="button">→</button></div></div></div></div>
+  </main>
+
+  <aside class="inspector">
+    <header class="inspector-head"><span data-i18n="projectInspector">Project inspector</span><small>LIVE</small></header>
+    <section class="inspect-section"><div class="inspect-label" data-i18n="activeProject">Active project</div><div class="project-card"><div class="project-card-head"><span class="project-sigil"></span><span><b>spaceagent-v2</b><small>/apps/platform-server</small></span></div><div class="project-meta"><div><span data-i18n="branch">Branch</span><strong>main</strong></div><div><span data-i18n="projectSessions">Sessions</span><strong>04</strong></div><div><span data-i18n="indexedFiles">Indexed files</span><strong>1,284</strong></div><div><span data-i18n="lastSync">Last sync</span><strong>12s</strong></div></div></div></section>
+    <section class="inspect-section"><div class="inspect-label" data-i18n="conversationAgents">Conversation agents</div><div class="agent-stack"><button class="agent-route active" type="button" data-agent-route="Release Guardian"><span class="agent-node">RG</span><span><b>Release Guardian</b><small data-i18n="roleOwner">Architecture owner</small></span><em data-agent-state data-i18n="primary">PRIMARY</em></button><button class="agent-route" type="button" data-agent-route="Knowledge Scout"><span class="agent-node">KS</span><span><b>Knowledge Scout</b><small data-i18n="roleContext">Evidence retrieval</small></span><em data-agent-state data-i18n="support">SUPPORT</em></button><button class="agent-route" type="button" data-agent-route="Runtime Reviewer"><span class="agent-node">RR</span><span><b>Runtime Reviewer</b><small data-i18n="roleReview">Runtime review</small></span><em data-agent-state data-i18n="support">SUPPORT</em></button><button class="agent-route" type="button" data-agent-route="Repo Cartographer"><span class="agent-node">RC</span><span><b>Repo Cartographer</b><small data-i18n="roleMap">Repository topology</small></span><em data-agent-state data-i18n="support">SUPPORT</em></button></div></section>
+    <section class="inspect-section"><div class="inspect-label" data-i18n="contextWindow">Project context window</div><div class="context-meter"><i></i></div><div class="context-numbers"><span>68.9K / 164K</span><b>42%</b></div></section>
+    <section class="inspect-section"><div class="inspect-label" data-i18n="fileScope">File scope</div><div class="scope-list"><div class="scope-row changed"><span>PlatformApplication.java</span><b>M</b></div><div class="scope-row"><span>V1035__runtime.sql</span><b>R</b></div><div class="scope-row"><span>DEPENDENCY-RULES.md</span><b>R</b></div><div class="scope-row"><span>CURRENT.md</span><b>PIN</b></div></div></section>
+  </aside>
+</div>
+
+<script>
+(()=>{'use strict';
+const languages=['en','zh','ja'];
+const labels={en:'EN',zh:'中',ja:'日'};
+const copy={
+  core:['Core','核心','コア'],overview:['Overview','概览','概要'],workspace:['Workspace','工作台','ワークスペース'],chat:['Chat','对话','チャット'],project:['Project','项目','プロジェクト'],agents:['Agents','Agent','エージェント'],mcp:['MCP Market','MCP 市场','MCP マーケット'],operate:['Operate','运行','運用'],tracing:['Run Tracing','调用追踪','実行トレース'],automation:['Automation','自动化','オートメーション'],knowledge:['Knowledge','知识库','ナレッジ'],control:['Control','管理','管理'],models:['Model Resources','模型资源','モデル資源'],credentials:['Credentials','凭证与密钥','認証情報'],organization:['Organization','组织设置','組織設定'],
+  workspaceProject:['Workspace / Project','工作台 / 项目','ワークスペース / プロジェクト'],projectExplorer:['Project explorer','项目资源管理器','プロジェクトエクスプローラー'],searchProjects:['Search projects or sessions','搜索项目或会话','プロジェクトまたは会話を検索'],projectFolders:['Project folders','项目文件夹','プロジェクトフォルダ'],sessionsLower:['sessions','个会话','セッション'],managedRoot:['Managed project root','托管项目根目录','管理対象プロジェクトルート'],
+  threadRelease:['Release boundary','发布边界','リリース境界'],threadSchema:['Schema migration map','数据迁移地图','スキーマ移行マップ'],threadMemory:['Memory ownership audit','记忆归属审计','メモリ所有権監査'],threadRuntime:['Runtime recovery','运行恢复','ランタイム復旧'],threadBrowser:['Browser isolation plan','浏览器隔离方案','ブラウザ分離計画'],threadTracing:['Trace transport','追踪传输','トレース転送'],threadNotes:['Release notes evidence','发布说明证据','リリースノート証跡'],
+  root:['ROOT','根目录','ルート'],contextCompiled:['Project context compiled','项目上下文已编译','プロジェクト文脈を構築済み'],opened:['Conversation opened inside spaceagent-v2','会话已在 spaceagent-v2 项目内开启','spaceagent-v2 内で会話を開始'],operatorMessage:['Review the release boundary as a project-level task. Keep every recommendation traceable to the repository and its architecture rules.','以项目级任务审查发布边界，确保每项建议都能追溯到仓库及其架构规则。','プロジェクト単位でリリース境界を確認し、すべての提案をリポジトリとアーキテクチャ規則に追跡可能にしてください。'],agentMessage:['I have bound this conversation to the project root, current branch, architecture rules, and release evidence. I’ll inspect the four scopes below before proposing a change.','我已将此会话绑定到项目根目录、当前分支、架构规则和发布证据；提出变更前，我会检查以下四个范围。','この会話をプロジェクトルート、現在のブランチ、アーキテクチャ規則、リリース証跡に接続しました。変更を提案する前に、以下の4領域を確認します。'],agentMessage2:['The active release path is coherent. The remaining work is evidence consolidation, not another runtime refactor. I’m handing the documentation pass to Knowledge Scout while keeping architecture ownership here.','当前发布路径完整一致。剩余工作是整理证据，而不是再次重构运行时。我会把文档检查交给 Knowledge Scout，同时保留架构决策权。','現在のリリース経路は一貫しています。残作業は証跡の統合であり、再度のランタイム改修ではありません。アーキテクチャ責任を維持したまま、文書確認を Knowledge Scout に引き継ぎます。'],projectScope:['Project scope','项目范围','プロジェクト範囲'],bound:['Bound','已绑定','接続済み'],completed:['Completed','已完成','完了'],handoff:['Agent handoff','Agent 移交','エージェント引継ぎ'],accepted:['Accepted','已接收','受領済み'],composer:['Describe the next project objective…','描述下一个项目目标…','次のプロジェクト目標を入力…'],attachFiles:['Attach files','附加文件','ファイルを添付'],
+  projectInspector:['Project inspector','项目检查器','プロジェクトインスペクタ'],activeProject:['Active project','当前项目','アクティブプロジェクト'],branch:['Branch','分支','ブランチ'],projectSessions:['Sessions','会话','会話'],indexedFiles:['Indexed files','已索引文件','索引済みファイル'],lastSync:['Last sync','最近同步','最終同期'],conversationAgents:['Conversation agents','会话 Agent','会話エージェント'],roleOwner:['Architecture owner','架构负责人','アーキテクチャ責任者'],roleContext:['Evidence retrieval','证据检索','証跡検索'],roleReview:['Runtime review','运行审查','ランタイムレビュー'],roleMap:['Repository topology','仓库拓扑','リポジトリ構成'],primary:['Primary','主 Agent','プライマリ'],support:['Support','协作','サポート'],standby:['Standby','待命','待機'],contextWindow:['Project context window','项目上下文窗口','プロジェクト文脈ウィンドウ'],fileScope:['File scope','文件范围','ファイル範囲']
+};
+const linkedLanguage=new URLSearchParams(location.search).get('lang');
+let language=languages.includes(linkedLanguage)?linkedLanguage:localStorage.getItem('spaceagent-prototype-language');
+if(!languages.includes(language))language=navigator.language.startsWith('zh')?'zh':navigator.language.startsWith('ja')?'ja':'en';
+localStorage.setItem('spaceagent-prototype-language',language);
+const t=key=>copy[key]?.[languages.indexOf(language)]??key;
+const shell=document.getElementById('workspace-shell');
+const langButton=document.getElementById('language-button');
+const threadTitle=document.getElementById('thread-title');
+let activeThread=document.querySelector('.thread-item.active');
+
+function applyThread(){
+  if(!activeThread)return;
+  const projectName=activeThread.closest('.project-block').querySelector('.project-copy b').textContent;
+  threadTitle.textContent=t(activeThread.dataset.titleKey);
+  document.getElementById('project-path').textContent=`PROJECT / ${projectName.toUpperCase()} / ${activeThread.dataset.thread}`;
+  document.getElementById('header-agent').textContent=activeThread.dataset.agent;
+  document.getElementById('header-model').textContent=activeThread.dataset.model;
+  document.getElementById('composer-agent').textContent=activeThread.dataset.agent;
+  const routes=[...document.querySelectorAll('.agent-route')];
+  const matchingRoute=routes.find(route=>route.dataset.agentRoute===activeThread.dataset.agent)||routes[0];
+  routes.forEach(route=>{const active=route===matchingRoute;route.classList.toggle('active',active);const state=route.querySelector('[data-agent-state]');state.dataset.i18n=active?'primary':'support';state.textContent=t(active?'primary':'support')});
+}
+function applyLanguage(){
+  document.documentElement.lang=language==='zh'?'zh-CN':language;
+  document.querySelectorAll('[data-i18n]').forEach(node=>node.textContent=t(node.dataset.i18n));
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(node=>node.placeholder=t(node.dataset.i18nPlaceholder));
+  document.querySelectorAll('[data-prototype-link]').forEach(link=>link.href=`${link.dataset.prototypeLink}?lang=${language}`);
+  langButton.textContent=labels[language];
+  const next=languages[(languages.indexOf(language)+1)%3];
+  langButton.setAttribute('aria-label',`Switch to ${next==='zh'?'中文':next==='ja'?'日本語':'English'}`);
+  document.title=language==='zh'?'SpaceAgent — Project 工作台':language==='ja'?'SpaceAgent — Project ワークスペース':'SpaceAgent — Project Workspace';
+  applyThread();
+}
+langButton.addEventListener('click',()=>{language=languages[(languages.indexOf(language)+1)%3];localStorage.setItem('spaceagent-prototype-language',language);applyLanguage()});
+document.querySelectorAll('.project-node').forEach(button=>button.addEventListener('click',()=>button.closest('.project-block').classList.toggle('open')));
+document.querySelectorAll('.thread-item').forEach(button=>button.addEventListener('click',()=>{
+  document.querySelectorAll('.thread-item').forEach(item=>item.classList.toggle('active',item===button));
+  activeThread=button;applyThread();
+}));
+document.querySelectorAll('.agent-route').forEach(button=>button.addEventListener('click',()=>{
+  document.querySelectorAll('.agent-route').forEach(item=>{const active=item===button;item.classList.toggle('active',active);const state=item.querySelector('[data-agent-state]');state.dataset.i18n=active?'primary':'support';state.textContent=t(active?'primary':'support')});
+  document.getElementById('header-agent').textContent=button.dataset.agentRoute;
+  document.getElementById('composer-agent').textContent=button.dataset.agentRoute;
+}));
+const toggleLeft=document.getElementById('toggle-left'),toggleInspector=document.getElementById('toggle-inspector'),layoutKeys={nav:'spaceagent-project-nav-collapsed',inspector:'spaceagent-project-inspector-collapsed'};
+function savedLayout(key){const value=localStorage.getItem(key);return value===null?true:value==='true'}
+function syncLayout(){const navCollapsed=shell.classList.contains('nav-collapsed'),inspectorCollapsed=shell.classList.contains('inspector-collapsed');toggleLeft.classList.toggle('is-collapsed',navCollapsed);toggleLeft.textContent=navCollapsed?'⟫':'⟪';toggleLeft.setAttribute('aria-label',navCollapsed?'Expand navigation':'Collapse navigation');toggleInspector.classList.toggle('is-collapsed',inspectorCollapsed);toggleInspector.textContent=inspectorCollapsed?'⟪':'⟫';toggleInspector.setAttribute('aria-label',inspectorCollapsed?'Expand inspector':'Collapse inspector')}
+shell.classList.toggle('nav-collapsed',savedLayout(layoutKeys.nav));shell.classList.toggle('inspector-collapsed',savedLayout(layoutKeys.inspector));syncLayout();
+toggleLeft.addEventListener('click',()=>{const collapsed=shell.classList.toggle('nav-collapsed');localStorage.setItem(layoutKeys.nav,String(collapsed));syncLayout()});
+toggleInspector.addEventListener('click',()=>{const collapsed=shell.classList.toggle('inspector-collapsed');localStorage.setItem(layoutKeys.inspector,String(collapsed));syncLayout()});
+const input=document.getElementById('composer-input');
+function resizeComposer(){input.style.height='38px';input.style.height=Math.min(76,Math.max(38,input.scrollHeight))+'px'}
+input.addEventListener('input',resizeComposer);
+input.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();document.getElementById('send-button').click()}});
+document.getElementById('send-button').addEventListener('click',()=>{if(!input.value.trim())return;input.value='';resizeComposer();window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'})});
+resizeComposer();applyLanguage();
+})();
+</script>
+</body>
+</html>

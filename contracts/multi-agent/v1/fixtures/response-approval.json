@@ -1,0 +1,10 @@
+{
+  "contractVersion": "multi-agent/v1",
+  "requestId": "ma-req-approval",
+  "agentRunId": "run-approval",
+  "command": {
+    "kind": "APPROVAL_REQUIRED",
+    "payload": { "scopeType": "PLAN_STEP", "scopeId": "step-approval", "reason": "Java approval is required before continuing" }
+  },
+  "orchestration": { "route": "approval", "ephemeral": true }
+}

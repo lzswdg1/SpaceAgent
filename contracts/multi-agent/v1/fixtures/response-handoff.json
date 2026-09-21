@@ -1,0 +1,14 @@
+{
+  "contractVersion": "multi-agent/v1",
+  "requestId": "ma-req-handoff",
+  "agentRunId": "run-handoff",
+  "command": {
+    "kind": "HANDOFF_PROPOSED",
+    "payload": {
+      "sourceAgentRunId": "run-handoff",
+      "targetAgentId": "agent-2",
+      "summary": "Transfer the durable task and evidence to the isolated specialist"
+    }
+  },
+  "orchestration": { "route": "handoff", "ephemeral": true }
+}

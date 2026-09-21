@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.dev/contracts/local-bridge/v1/materialization-chunk.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "sessionId", "requestId", "relativePath", "offset", "contentLength", "contentSha256"],
+  "properties": {
+    "contractVersion": {"const": "local-materialization/v1"},
+    "sessionId": {"type": "string", "minLength": 1, "maxLength": 200},
+    "requestId": {"type": "string", "minLength": 1, "maxLength": 200},
+    "relativePath": {"type": "string", "minLength": 1, "maxLength": 1024},
+    "offset": {"type": "integer", "minimum": 0},
+    "contentLength": {"type": "integer", "minimum": 1},
+    "contentSha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}

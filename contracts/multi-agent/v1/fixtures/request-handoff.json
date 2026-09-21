@@ -1,0 +1,18 @@
+{
+  "contractVersion": "multi-agent/v1",
+  "requestId": "ma-req-handoff",
+  "agentRunId": "run-handoff",
+  "organizationId": "org-1",
+  "userId": "user-1",
+  "mode": "PROJECT",
+  "projectId": "project-1",
+  "taskId": "task-root",
+  "taskPlanId": "plan-1",
+  "conversationId": "conversation-1",
+  "agentRefs": [{ "agentId": "agent-2", "runConfigurationSnapshotId": null, "role": "coding" }],
+  "modelPoolRef": "pool-1",
+  "context": { "contextPackageId": "context-handoff", "tokenBudget": 4096, "sources": [] },
+  "capabilities": { "allowedToolNames": ["sandbox-bash"], "allowedSkillIds": [], "allowedMcpServerIds": [] },
+  "cursor": { "phase": "handoff", "checkpointId": "checkpoint-handoff", "planStepId": "step-1", "childTaskId": "task-child-1" },
+  "limits": { "maxDelegations": 8, "maxParallelAgents": 2, "maxDepth": 4, "remainingTokenBudget": 3000 }
+}

@@ -1,0 +1,10 @@
+{
+  "contractVersion": "multi-agent/v1",
+  "requestId": "ma-req-delegate",
+  "agentRunId": "run-delegate",
+  "command": {
+    "kind": "DELEGATE_SUBTASK",
+    "payload": { "taskPlanId": "plan-1", "planStepId": "step-1", "childTaskId": "task-child-1", "preferredAgentId": "agent-2" }
+  },
+  "orchestration": { "route": "delegate", "ephemeral": true }
+}

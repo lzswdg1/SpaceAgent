@@ -1,0 +1,19 @@
+package com.spaceagent.platform.artifact;
+
+import com.spaceagent.platform.artifact.api.ArtifactObjectApplicationApi;
+import com.spaceagent.platform.artifact.domain.*;
+import org.junit.jupiter.api.Test;
+import java.lang.reflect.RecordComponent;
+import java.time.Instant;
+import java.util.Arrays;
+import static org.assertj.core.api.Assertions.*;
+
+class ManagedArtifactObjectDomainTest {
+    private static final Instant NOW=Instant.parse("2026-09-09T00:00:00Z");private static final String HASH="sha256:"+"a".repeat(64);
+    @Test void verifiedStagingPublishesOnceAndMismatchNeverBecomesReady(){var open=new ArtifactObjectStagingSession("stage","tenant","owner","request",HASH,5,"text/plain","tenant-key:v1",null,ArtifactObjectStagingSession.State.OPEN,null,1,NOW.plusSeconds(300),NOW,NOW);assertThatThrownBy(()->open.verify("sha256:"+"b".repeat(64),5,"artifact-staging:one",NOW.plusSeconds(1))).isInstanceOf(IllegalStateException.class);var verified=open.verify(HASH,5,"artifact-staging:one",NOW.plusSeconds(1));var published=verified.publish("object",NOW.plusSeconds(2));assertThat(published.state()).isEqualTo(ArtifactObjectStagingSession.State.PUBLISHED);assertThatThrownBy(()->published.publish("other",NOW.plusSeconds(3))).isInstanceOf(IllegalStateException.class);}
+    @Test void objectContentIdentityIsImmutableAndDeletionRequiresNoRefsHoldOrRetention(){var object=object();assertThatThrownBy(()->object.requestDeletion(1,false,NOW.plusSeconds(1000))).isInstanceOf(IllegalStateException.class);assertThatThrownBy(()->object.requestDeletion(0,true,NOW.plusSeconds(1000))).isInstanceOf(IllegalStateException.class);var pending=object.requestDeletion(0,false,NOW.plusSeconds(1000));assertThat(pending.contentSha256()).isEqualTo(HASH);assertThat(pending.deleted(NOW.plusSeconds(1001)).state()).isEqualTo(ManagedArtifactObject.State.DELETED);}
+    @Test void referencesAndHoldsAreAuditableAndIdempotentlyReleased(){var reference=new ArtifactObjectReference("ref","tenant","object",ArtifactObjectReference.OwnerType.KNOWLEDGE,"document","source",ArtifactObjectReference.State.ACTIVE,1,NOW,null);assertThat(reference.release(NOW.plusSeconds(1)).release(NOW.plusSeconds(2)).revision()).isEqualTo(2);var hold=new ArtifactObjectLegalHold("hold","tenant","object",HASH,"owner",ArtifactObjectLegalHold.State.ACTIVE,1,NOW,null,null);assertThat(hold.release("reviewer",NOW.plusSeconds(1)).state()).isEqualTo(ArtifactObjectLegalHold.State.RELEASED);}
+    @Test void absoluteStorageCoordinatesAndInvalidHashesAreRejected(){assertThatThrownBy(()->new ManagedArtifactObject("object","tenant","owner",HASH,5,"text/plain","/var/data/object","tenant-key:v1",new ManagedArtifactObject.Retention(NOW,false),ManagedArtifactObject.State.READY,1,NOW,NOW,null)).isInstanceOf(IllegalArgumentException.class);assertThatThrownBy(()->new ManagedArtifactObject("object","tenant","owner","bad",5,"text/plain","artifact-object:one","tenant-key:v1",new ManagedArtifactObject.Retention(NOW,false),ManagedArtifactObject.State.READY,1,NOW,NOW,null)).isInstanceOf(IllegalArgumentException.class);}
+    @Test void publicCommandsContainNoBytesPathsBucketsCredentialsOrClientState(){var names=Arrays.stream(ArtifactObjectApplicationApi.class.getDeclaredClasses()).filter(Class::isRecord).filter(type->type.getSimpleName().endsWith("Command")||type.getSimpleName().endsWith("Query")).flatMap(type->Arrays.stream(type.getRecordComponents())).map(RecordComponent::getName).map(String::toLowerCase).toList();assertThat(names).noneMatch(value->value.equals("content")||value.contains("path")||value.contains("bucket")||value.contains("credential")||value.equals("state")||value.contains("storage"));}
+    private static ManagedArtifactObject object(){return new ManagedArtifactObject("object","tenant","owner",HASH,5,"text/plain","artifact-object:one","tenant-key:v1",new ManagedArtifactObject.Retention(NOW.plusSeconds(10),true),ManagedArtifactObject.State.READY,1,NOW,NOW,null);}
+}

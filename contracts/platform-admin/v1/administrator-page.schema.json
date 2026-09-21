@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.local/contracts/platform-admin/v1/administrator-page.schema.json",
+  "title": "Administrator page",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "page", "pageSize", "total", "generatedAt"],
+  "properties": {
+    "items": {"type": "array", "maxItems": 1, "items": {"$ref": "#/$defs/administrator"}},
+    "page": {"type": "integer", "minimum": 0},
+    "pageSize": {"type": "integer", "minimum": 1, "maximum": 100},
+    "total": {"type": "integer", "minimum": 0, "maximum": 1},
+    "generatedAt": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "administrator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "loginName", "displayName", "status", "role", "mustChangePassword", "credentialVersion", "createdAt", "updatedAt", "activeSessions", "remainingRecoveryCodes"],
+      "properties": {
+        "id": {"type": "string", "format": "uuid"},
+        "loginName": {"type": "string", "maxLength": 120},
+        "displayName": {"type": "string", "maxLength": 120},
+        "status": {"enum": ["ACTIVE", "SUSPENDED", "LOCKED", "DELETED"]},
+        "role": {"const": "PLATFORM_SUPER_ADMIN"},
+        "mustChangePassword": {"type": "boolean"},
+        "credentialVersion": {"type": "integer", "minimum": 1},
+        "lastSuccessfulLoginAt": {"type": ["string", "null"], "format": "date-time"},
+        "createdAt": {"type": "string", "format": "date-time"},
+        "updatedAt": {"type": "string", "format": "date-time"},
+        "activeSessions": {"type": "integer", "minimum": 0},
+        "remainingRecoveryCodes": {"type": "integer", "minimum": 0, "maximum": 20}
+      }
+    }
+  }
+}

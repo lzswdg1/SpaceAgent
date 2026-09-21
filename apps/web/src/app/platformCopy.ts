@@ -1,0 +1,7 @@
+import type { Language } from '../copy'
+const copy = {
+  zh: { resume: '继续上次的工作', usage: 'Token 消费', today: '今日（UTC）', week: '近 7 天', month: '近 30 天', input: '输入', output: '输出', cacheRead: '缓存读取', cacheCreate: '缓存写入', consumed: '已消费', cost: '费用（USD）', pause: '暂停圆环动画', play: '播放圆环动画', details: '用量明细与运行管理', noRecent: '暂无会话，开始一段新的对话吧。', resumeError: '无法加载最近会话', newChat: '新对话', open: '继续', pool: '模型池', usageError: '暂无可用统计', title: '工作概览' },
+  en: { resume: 'Continue your work', usage: 'Token usage', today: 'Today (UTC)', week: 'Last 7 days', month: 'Last 30 days', input: 'Input', output: 'Output', cacheRead: 'Cache read', cacheCreate: 'Cache write', consumed: 'Consumed', cost: 'Cost (USD)', pause: 'Pause ring animation', play: 'Play ring animation', details: 'Usage details and runtime management', noRecent: 'No conversations yet. Start a new conversation.', resumeError: 'Could not load recent conversations', newChat: 'New conversation', open: 'Continue', pool: 'Model pool', usageError: 'Usage unavailable', title: 'Workspace overview' },
+  ja: { resume: '前回の作業を続ける', usage: 'Token 使用量', today: '今日（UTC）', week: '過去 7 日', month: '過去 30 日', input: '入力', output: '出力', cacheRead: 'キャッシュ読取', cacheCreate: 'キャッシュ書込', consumed: '使用済み', cost: '費用（USD）', pause: 'リングのアニメーションを停止', play: 'リングのアニメーションを再生', details: '使用量の詳細と実行管理', noRecent: '会話はまだありません。新しい会話を始めましょう。', resumeError: '最近の会話を読み込めませんでした', newChat: '新しい会話', open: '続ける', pool: 'モデルプール', usageError: '統計を取得できません', title: 'ワークスペース概要' },
+} as const
+export const platformCopy = (language: Language) => copy[language]

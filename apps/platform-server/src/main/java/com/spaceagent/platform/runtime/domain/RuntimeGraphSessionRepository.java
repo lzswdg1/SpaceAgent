@@ -1,0 +1,3 @@
+package com.spaceagent.platform.runtime.domain;
+import java.util.Optional;
+public interface RuntimeGraphSessionRepository { void insert(RuntimeGraphSession session); Optional<RuntimeGraphSession> findById(String tenantId,String ownerUserId,String sessionId); Optional<RuntimeGraphSession> findByRunId(String tenantId,String ownerUserId,String agentRunId); boolean update(RuntimeGraphSession session,long expectedRevision,GraphSessionState expectedState); RuntimeGraphCommand insertCommandIfAbsent(RuntimeGraphCommand command); Optional<RuntimeGraphCommand> findCommand(String graphSessionId,String commandId);boolean updateCommand(RuntimeGraphCommand command,long expectedRevision,RuntimeGraphCommand.State expectedState);int cleanupCompletedBefore(java.time.Instant before); }

@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="theme-color" content="#050505" />
+<title>SpaceAgent — Public Entry Concept</title>
+<style>
+:root{--black:#050505;--warm:#f4f2ec;--ease:cubic-bezier(.16,1,.3,1);--sans:"Inter","Helvetica Neue",-apple-system,BlinkMacSystemFont,sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;background:var(--black)}body{margin:0;background:var(--black);color:var(--warm);font-family:var(--sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}a{color:inherit;text-decoration:none}a:focus-visible{outline:1px solid rgba(244,242,236,.7);outline-offset:5px}
+#particle-canvas{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100vw;max-width:2560px;height:100vh;z-index:0;pointer-events:none}
+.noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");mix-blend-mode:screen}
+.nav{position:fixed;inset:0 0 auto;z-index:40;height:80px;padding:0 clamp(24px,4vw,64px);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;opacity:0;transform:translateY(-10px);pointer-events:none;transition:opacity .6s var(--ease),transform .6s var(--ease);color:var(--warm)}.nav.visible{opacity:1;transform:none;pointer-events:auto}.brand-wordmark{display:inline-flex;align-items:baseline;white-space:nowrap;letter-spacing:-.04em}.brand-wordmark .space{font-weight:500}.brand-wordmark .agent{font-weight:400;opacity:.92}.nav-brand{justify-self:start;font-size:22px}.nav-links{display:flex;gap:clamp(24px,3vw,48px);font-size:13px;opacity:.8}.nav-actions{justify-self:end;display:flex;align-items:center;gap:24px;font-size:13px}.nav-enter{position:relative}.nav-enter:after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:1px;background:currentColor;opacity:.4}.lang-switch{border:1px solid rgba(244,242,236,.22);background:rgba(5,5,5,.22);color:inherit;min-width:48px;height:30px;padding:0 9px;font:inherit;font-size:9px;letter-spacing:.12em;cursor:pointer;transition:background .3s var(--ease),color .3s var(--ease),border-color .3s var(--ease)}.lang-switch:hover{background:var(--warm);color:var(--black);border-color:var(--warm)}.auth-form-top .lang-switch{border-color:rgba(5,5,5,.18);background:transparent;color:var(--black);margin-right:auto}.auth-form-top .lang-switch:hover{background:var(--black);color:var(--warm)}
+.immersive{position:relative;z-index:2;height:400vh}.stage{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center}.brand-opening{position:absolute;inset:0;display:grid;place-items:center;z-index:10;pointer-events:none}.opening-wordmark{font-size:clamp(64px,10vw,160px);letter-spacing:-.05em;will-change:transform,filter,opacity;text-shadow:0 0 40px rgba(255,255,255,.05)}
+.scroll-cue{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:16px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(244,242,236,.5)}.scroll-line{width:1px;height:48px;background:rgba(244,242,236,.15);overflow:hidden;position:relative}.scroll-line:after{content:"";position:absolute;inset:0 auto auto 0;width:1px;height:20px;background:rgba(244,242,236,.8);animation:scrollPulse 2s cubic-bezier(.65,0,.35,1) infinite}@keyframes scrollPulse{0%{transform:translateY(-20px);opacity:0}30%{opacity:1}100%{transform:translateY(50px);opacity:0}}
+.hero{position:absolute;inset:0;display:flex;align-items:center;padding:0 clamp(24px,6vw,120px);opacity:0;pointer-events:none;z-index:15}.hero-content{width:min(50vw,680px);will-change:transform,opacity}.hero h1{margin:0;font-weight:400;font-size:clamp(56px,7vw,112px);letter-spacing:-.04em;line-height:1.05}.hero-copy{margin:40px 0 0;max-width:520px;color:rgba(244,242,236,.7);font-size:clamp(17px,1.4vw,22px);line-height:1.6;font-weight:300}.hero-actions{margin-top:48px;display:flex;gap:40px;font-size:14px}.hero-actions a{position:relative;padding-bottom:6px}.hero-actions .primary:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:currentColor;transform-origin:left;transition:transform .4s var(--ease)}.hero-actions .primary:hover:after{transform:scaleX(.4)}.hero-actions .secondary{color:rgba(244,242,236,.5)}
+.next-section-anchor{position:relative;z-index:5;height:1px;background:var(--black)}
+@media(max-width:1024px){.nav{grid-template-columns:1fr auto}.nav-links{display:none}.hero-content{width:min(80vw,600px)}}
+@media(max-width:768px){.immersive{height:350vh}.nav{height:72px;padding-inline:24px}.nav-enter{display:none}.hero{padding:0 24px 10vh;align-items:flex-end}.hero-content{width:100%}.hero h1{max-width:95%}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.scroll-line:after{animation:none;opacity:1;transform:none}}
+
+/* Continuation: product story */
+.story{position:relative;z-index:6;background:var(--black)}
+.eyebrow{display:flex;align-items:center;gap:12px;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(244,242,236,.48)}
+.eyebrow:before{content:"";width:28px;height:1px;background:currentColor}
+.principles{min-height:110vh;padding:clamp(110px,15vw,220px) clamp(24px,6vw,120px);display:grid;grid-template-columns:minmax(180px,.4fr) 1fr;gap:8vw;align-items:start;border-top:1px solid rgba(244,242,236,.09)}
+.principles-copy{position:sticky;top:120px}.principles-copy p{margin:24px 0 0;max-width:300px;font-size:14px;line-height:1.8;color:rgba(244,242,236,.5)}
+.principle-list{display:grid}.principle{position:relative;padding:0 0 60px;margin-bottom:60px;border-bottom:1px solid rgba(244,242,236,.13);opacity:.34;transform:translateY(28px);transition:opacity .8s var(--ease),transform .8s var(--ease)}.principle.is-visible{opacity:1;transform:none}.principle-index{font-size:11px;color:rgba(244,242,236,.35);letter-spacing:.16em}.principle h2{margin:22px 0 16px;font-weight:400;font-size:clamp(42px,5.2vw,88px);line-height:1;letter-spacing:-.045em}.principle p{margin:0;max-width:670px;color:rgba(244,242,236,.58);font-size:clamp(16px,1.25vw,20px);line-height:1.7}
+
+.system-section{position:relative;z-index:7;background:var(--warm);color:var(--black);padding:clamp(100px,12vw,180px) clamp(24px,6vw,120px);overflow:hidden}.system-head{display:grid;grid-template-columns:1fr 1fr;gap:8vw;align-items:end;margin-bottom:84px}.system-head h2{margin:0;font-weight:400;font-size:clamp(54px,7.4vw,116px);line-height:.92;letter-spacing:-.055em}.system-intro{max-width:490px;justify-self:end}.system-intro p{font-size:clamp(16px,1.3vw,20px);line-height:1.7;color:rgba(5,5,5,.62)}.system-note{margin-top:28px;display:flex;gap:18px;align-items:center;font-size:11px;text-transform:uppercase;letter-spacing:.16em}.system-note i{display:block;width:8px;height:8px;border-radius:50%;background:#177a4d;box-shadow:0 0 0 5px rgba(23,122,77,.1)}
+.console{border:1px solid rgba(5,5,5,.24);background:#e9e6de;box-shadow:0 40px 90px rgba(5,5,5,.16);min-height:620px;display:grid;grid-template-columns:230px 1fr;overflow:hidden}.console-sidebar{border-right:1px solid rgba(5,5,5,.18);padding:24px 18px;display:flex;flex-direction:column}.console-brand{display:flex;justify-content:space-between;font-size:12px;padding:0 6px 24px;border-bottom:1px solid rgba(5,5,5,.14)}.console-nav{padding-top:22px;display:grid;gap:7px}.console-nav span{padding:10px 12px;font-size:12px;color:rgba(5,5,5,.5);display:flex;justify-content:space-between}.console-nav b{font-weight:inherit}.console-nav .active{background:var(--black);color:var(--warm)}.console-nav small{font-size:9px;opacity:.55}.console-user{margin-top:auto;padding:16px 10px 4px;border-top:1px solid rgba(5,5,5,.14);font-size:11px;color:rgba(5,5,5,.55)}
+.console-main{padding:24px 28px 28px;display:grid;grid-template-rows:auto auto 1fr;gap:20px}.console-top{display:flex;justify-content:space-between;align-items:center}.console-top strong{font-weight:500;font-size:14px}.console-top-meta{display:flex;gap:8px}.status-pill{border:1px solid rgba(5,5,5,.2);padding:7px 10px;font-size:9px;text-transform:uppercase;letter-spacing:.1em;transition:background .35s,color .35s,border-color .35s}.status-pill.live{background:#d5ebdf;border-color:#a3ceb7;color:#17623f}.status-pill.live.waiting{background:#efe1bd;border-color:#d7be7e;color:#6e5215}.task-line{display:flex;align-items:center;gap:10px;font-size:11px;color:rgba(5,5,5,.52)}.task-line:before{content:"";width:36px;height:1px;background:rgba(5,5,5,.28)}
+.workspace{display:grid;grid-template-columns:minmax(250px,.8fr) minmax(320px,1.3fr);gap:18px;min-height:470px}.task-panel,.run-panel{border:1px solid rgba(5,5,5,.17);background:rgba(255,255,255,.28)}.panel-title{height:48px;padding:0 16px;border-bottom:1px solid rgba(5,5,5,.14);display:flex;align-items:center;justify-content:space-between;font-size:10px;letter-spacing:.12em;text-transform:uppercase}.task-items{padding:10px}.task-item{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:start;padding:14px 8px;border-bottom:1px solid rgba(5,5,5,.1);font-size:11px}.task-dot{width:7px;height:7px;border:1px solid rgba(5,5,5,.4);border-radius:50%;margin-top:3px}.task-item.done .task-dot{background:#177a4d;border-color:#177a4d}.task-item.active .task-dot{background:var(--black);box-shadow:0 0 0 4px rgba(5,5,5,.1)}.task-item b{font-weight:500}.task-item p{margin:5px 0 0;color:rgba(5,5,5,.45);line-height:1.45}.task-item em{font-style:normal;font-size:9px;color:rgba(5,5,5,.38);text-transform:uppercase}
+.run-chain{display:grid;grid-template-columns:auto 1fr auto 1fr auto 1fr auto;align-items:center;gap:9px;padding:14px 16px;border-bottom:1px solid rgba(5,5,5,.12);font-size:8px;text-transform:uppercase;letter-spacing:.11em;color:rgba(5,5,5,.32)}.run-chain i{height:1px;background:rgba(5,5,5,.14);position:relative;overflow:hidden}.run-chain i:after{content:"";position:absolute;inset:0;background:var(--black);transform:translateX(-105%)}.run-chain span{transition:color .3s var(--ease)}.run-chain span.is-active{color:var(--black);font-weight:600}.run-chain span.is-complete{color:#17623f}.run-chain i.is-active:after{animation:chainFlow 1.25s var(--ease) forwards}@keyframes chainFlow{to{transform:translateX(0)}}
+.run-stream{padding:18px;display:grid;gap:16px;position:relative}.run-stream:before,.run-progress{content:"";position:absolute;left:93px;top:24px;width:1px;height:calc(100% - 54px);background:rgba(5,5,5,.12)}.run-progress{background:#17623f;transform:scaleY(0);transform-origin:top;transition:transform .8s var(--ease);z-index:1}.run-event{display:grid;grid-template-columns:68px 1fr;gap:16px;font-size:11px;position:relative;opacity:.28;transform:translateY(4px);transition:opacity .45s var(--ease),transform .45s var(--ease)}.run-event:before{content:"";position:absolute;left:71px;top:3px;width:7px;height:7px;border-radius:50%;background:#ddd9cf;border:1px solid rgba(5,5,5,.25);z-index:2;transition:background .35s,box-shadow .35s,transform .35s}.run-event time{color:rgba(5,5,5,.38)}.run-event div{padding-bottom:16px;border-bottom:1px solid rgba(5,5,5,.1);line-height:1.55;transition:background .35s var(--ease),padding .35s var(--ease),color .35s var(--ease)}.run-event strong{font-weight:500;display:block;margin-bottom:5px}.run-event span{color:rgba(5,5,5,.52)}.run-event.is-complete{opacity:.58;transform:none}.run-event.is-complete:before{background:#17623f;border-color:#17623f}.run-event.is-active{opacity:1;transform:none}.run-event.is-active:before{background:var(--black);border-color:var(--black);transform:scale(1.2);box-shadow:0 0 0 6px rgba(5,5,5,.1)}.run-event.approval.is-active div{background:var(--black);color:var(--warm);padding:14px}.run-event.approval.is-active span{color:rgba(244,242,236,.56)}
+
+.capabilities{padding:clamp(110px,14vw,200px) clamp(24px,6vw,120px);background:var(--black);border-top:1px solid rgba(244,242,236,.08)}.cap-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:70px}.cap-head h2{margin:18px 0 0;font-size:clamp(48px,6vw,96px);font-weight:400;line-height:.96;letter-spacing:-.045em}.cap-head p{max-width:340px;margin:0;color:rgba(244,242,236,.5);font-size:14px;line-height:1.7}.cap-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(244,242,236,.18);border-bottom:1px solid rgba(244,242,236,.18)}.cap-card{min-height:470px;padding:30px;position:relative;border-right:1px solid rgba(244,242,236,.18);overflow:hidden}.cap-card:last-child{border-right:0}.cap-card-number{font-size:10px;letter-spacing:.18em;color:rgba(244,242,236,.4)}.cap-card h3{position:relative;z-index:2;margin:150px 0 18px;font-weight:400;font-size:clamp(30px,3.2vw,52px);letter-spacing:-.035em}.cap-card p{position:relative;z-index:2;margin:0;max-width:330px;font-size:14px;line-height:1.7;color:rgba(244,242,236,.5)}.cap-orbit{position:absolute;width:220px;height:220px;border:1px solid rgba(244,242,236,.1);border-radius:50%;right:-80px;top:-70px}.cap-orbit:before,.cap-orbit:after{content:"";position:absolute;border-radius:50%;inset:28px;border:1px solid rgba(244,242,236,.09)}.cap-orbit:after{inset:72px;background:radial-gradient(circle at 35% 35%,rgba(244,242,236,.45),rgba(244,242,236,.03) 55%,transparent 70%);border:0;animation:orbital 8s linear infinite}@keyframes orbital{to{transform:rotate(360deg)}}
+
+.closing{min-height:92vh;padding:100px clamp(24px,6vw,120px) 60px;display:flex;flex-direction:column;justify-content:space-between;background:var(--black);border-top:1px solid rgba(244,242,236,.08)}.closing-copy{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end}.closing h2{margin:0;font-size:clamp(58px,9vw,150px);font-weight:400;line-height:.88;letter-spacing:-.06em}.closing h2 span{color:rgba(244,242,236,.28)}.closing-action{width:170px;height:170px;border:1px solid rgba(244,242,236,.3);border-radius:50%;display:grid;place-items:center;font-size:13px;transition:background .4s var(--ease),color .4s var(--ease),transform .4s var(--ease)}.closing-action:hover{background:var(--warm);color:var(--black);transform:rotate(-8deg)}.footer-line{padding-top:40px;border-top:1px solid rgba(244,242,236,.14);display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(244,242,236,.4)}
+
+/* Authentication portal */
+.auth-portal{position:fixed;inset:0;z-index:120;background:var(--warm);color:var(--black);visibility:hidden;opacity:0;pointer-events:none;transition:opacity .55s var(--ease),visibility .55s}.auth-portal.is-open{visibility:visible;opacity:1;pointer-events:auto}.auth-layout{min-height:100%;display:grid;grid-template-columns:minmax(360px,42%) 1fr}.auth-visual{position:relative;background:var(--black);color:var(--warm);padding:34px clamp(28px,4vw,64px);display:flex;flex-direction:column;overflow:hidden;transform:translateX(-3%);transition:transform .75s var(--ease)}.auth-portal.is-open .auth-visual{transform:none}.auth-visual:after{content:"";position:absolute;width:min(46vw,700px);aspect-ratio:1;border:1px solid rgba(244,242,236,.1);border-radius:50%;right:-38%;bottom:-28%;box-shadow:0 0 0 80px rgba(244,242,236,.018),0 0 0 160px rgba(244,242,236,.012)}.auth-visual-top{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center}.auth-wordmark{font-size:20px}.auth-back{border:0;background:none;color:rgba(244,242,236,.6);font:inherit;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;padding:10px 0}.auth-back:hover{color:var(--warm)}.auth-statement{position:relative;z-index:2;margin:auto 0;max-width:560px}.auth-statement .eyebrow{margin-bottom:28px}.auth-statement h2{margin:0;font-size:clamp(44px,5.5vw,88px);line-height:.98;letter-spacing:-.05em;font-weight:400}.auth-statement p{margin:30px 0 0;max-width:450px;color:rgba(244,242,236,.53);font-size:15px;line-height:1.75}.auth-signal{position:absolute;right:12%;bottom:16%;width:9px;height:9px;border-radius:50%;background:var(--warm);box-shadow:0 0 20px 7px rgba(244,242,236,.24);animation:signal 3s ease-in-out infinite}@keyframes signal{50%{transform:scale(.55);opacity:.45}}
+.auth-form-side{position:relative;padding:32px clamp(28px,7vw,110px);display:flex;flex-direction:column;overflow:auto;transform:translateX(4%);transition:transform .75s var(--ease)}.auth-portal.is-open .auth-form-side{transform:none}.auth-form-top{display:flex;justify-content:flex-end;gap:8px}.mode-button{border:1px solid rgba(5,5,5,.18);background:transparent;padding:9px 13px;font:inherit;font-size:10px;text-transform:uppercase;letter-spacing:.1em;cursor:pointer}.mode-button.is-active{background:var(--black);color:var(--warm)}.auth-panel{display:none;width:min(100%,430px);margin:auto}.auth-panel.is-active{display:block;animation:panelIn .55s var(--ease)}@keyframes panelIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}.auth-kicker{font-size:10px;text-transform:uppercase;letter-spacing:.2em;color:rgba(5,5,5,.45)}.auth-panel h1{margin:18px 0 8px;font-size:clamp(38px,4vw,60px);font-weight:400;letter-spacing:-.045em}.auth-subtitle{margin:0 0 44px;color:rgba(5,5,5,.5);font-size:14px;line-height:1.6}.field{position:relative;margin-bottom:25px}.field label{display:block;margin-bottom:9px;font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:rgba(5,5,5,.5)}.field input{width:100%;height:48px;border:0;border-bottom:1px solid rgba(5,5,5,.28);border-radius:0;background:transparent;color:var(--black);font:inherit;font-size:15px;outline:none;padding:0 60px 0 0;transition:border-color .25s}.field input:focus{border-color:var(--black)}.field input::placeholder{color:rgba(5,5,5,.27)}.show-password{position:absolute;right:0;bottom:16px;border:0;background:none;padding:0;font:inherit;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(5,5,5,.45);cursor:pointer}.form-meta{display:flex;justify-content:space-between;align-items:center;margin:6px 0 30px;font-size:11px;color:rgba(5,5,5,.5)}.form-meta a{text-decoration:underline;text-decoration-color:rgba(5,5,5,.25);text-underline-offset:4px}.check{display:flex;align-items:center;gap:9px}.check input{accent-color:var(--black)}.auth-submit{width:100%;height:56px;border:1px solid var(--black);background:var(--black);color:var(--warm);display:flex;justify-content:space-between;align-items:center;padding:0 20px;font:inherit;font-size:12px;text-transform:uppercase;letter-spacing:.11em;cursor:pointer;transition:background .3s,color .3s}.auth-submit:hover{background:transparent;color:var(--black)}.auth-submit span:last-child{font-size:18px}.auth-submit[data-state="loading"] span:first-child:after{content:" ···";animation:dots 1s steps(3,end) infinite}@keyframes dots{50%{opacity:.35}}.auth-submit[data-state="success"]{background:#17623f;border-color:#17623f;color:#fff}.auth-switch{margin:24px 0 0;font-size:11px;color:rgba(5,5,5,.5)}.auth-switch button{border:0;background:none;font:inherit;color:var(--black);text-decoration:underline;text-underline-offset:4px;cursor:pointer}.prototype-note{margin-top:auto;padding-top:32px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(5,5,5,.32)}
+
+@media(max-width:900px){.principles{grid-template-columns:1fr}.principles-copy{position:static}.system-head{grid-template-columns:1fr}.system-intro{justify-self:start}.console{grid-template-columns:160px 1fr}.workspace{grid-template-columns:1fr}.task-panel{display:none}.cap-grid{grid-template-columns:1fr}.cap-card{border-right:0;border-bottom:1px solid rgba(244,242,236,.18);min-height:380px}.cap-card:last-child{border-bottom:0}.cap-card h3{margin-top:120px}.auth-layout{grid-template-columns:1fr}.auth-visual{display:none}.auth-form-side{min-height:100vh}.closing-copy{grid-template-columns:1fr}.closing-action{width:130px;height:130px}}
+@media(max-width:620px){.principles,.system-section,.capabilities{padding-inline:24px}.console{grid-template-columns:1fr;min-height:560px}.console-sidebar{display:none}.console-main{padding:16px}.workspace{min-height:430px}.system-head{margin-bottom:50px}.cap-head{display:block}.cap-head p{margin-top:24px}.closing{padding-inline:24px}.footer-line{gap:18px;flex-wrap:wrap}.auth-form-side{padding:24px}.auth-panel{margin:64px auto 30px}.auth-form-top{position:relative;z-index:2}}
+@media(prefers-reduced-motion:reduce){.principle,.auth-visual,.auth-form-side,.run-event,.run-progress{transition:none}.cap-orbit:after,.auth-signal,.run-chain i:after{animation:none}}
+
+/* Authentication concept v2 — exploration access chamber */
+.auth-portal{--auth-shift-x:0px;--auth-shift-y:0px;background:#050607;color:var(--warm);isolation:isolate}.auth-portal:before{content:"";position:absolute;inset:0;z-index:-2;background-image:linear-gradient(rgba(151,169,184,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(151,169,184,.055) 1px,transparent 1px);background-size:72px 72px;mask-image:linear-gradient(90deg,#000,rgba(0,0,0,.8) 55%,rgba(0,0,0,.2))}.auth-portal:after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 26% 48%,rgba(123,151,172,.12),transparent 34%),linear-gradient(90deg,transparent 48%,rgba(5,6,7,.62) 62%,#050607 100%);pointer-events:none}.auth-layout{position:relative;min-height:100%;grid-template-columns:minmax(420px,1.12fr) minmax(460px,.88fr)}
+.auth-visual{z-index:1;background:transparent;border-right:1px solid rgba(244,242,236,.11);padding:34px clamp(28px,4vw,64px);transform:none}.auth-visual:after{display:none}.auth-visual-top{z-index:8}.auth-back{color:rgba(244,242,236,.55)}.auth-statement{z-index:6;margin:auto 0 54px;max-width:530px}.auth-statement h2{font-size:clamp(48px,5.2vw,86px)}.auth-statement p{max-width:420px}.auth-signal{right:auto;left:64px;bottom:34px;width:6px;height:6px;background:#9eb4c5;box-shadow:0 0 18px 6px rgba(140,169,190,.28)}
+.auth-map{position:absolute;inset:72px 24px 100px 18px;z-index:2;pointer-events:none;transform:translate3d(var(--auth-shift-x),var(--auth-shift-y),0);transition:transform .7s var(--ease)}.auth-coordinate{position:absolute;color:rgba(196,211,222,.34);font-size:8px;letter-spacing:.15em;text-transform:uppercase}.auth-coordinate.north{top:7%;left:42%}.auth-coordinate.west{top:48%;left:1%;transform:rotate(-90deg)}.auth-coordinate.south{right:3%;bottom:5%}.auth-scan{position:absolute;left:46%;top:42%;width:min(38vw,560px);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:conic-gradient(from 210deg,transparent 0 76%,rgba(150,178,198,.14) 86%,transparent 94%);animation:authScan 9s linear infinite}.auth-scan:after{content:"";position:absolute;inset:49.7% 0 auto;width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(184,204,218,.2),transparent)}
+.auth-orbit{position:absolute;left:46%;top:42%;aspect-ratio:1;border:1px solid rgba(178,199,214,.15);border-radius:50%;transform:translate(-50%,-50%)}.auth-orbit:after{content:"";position:absolute;top:50%;left:-3px;width:6px;height:6px;border-radius:50%;background:#c9d8e2;box-shadow:0 0 16px 4px rgba(163,190,208,.35)}.auth-orbit.outer{width:min(42vw,620px);animation:authOrbit 28s linear infinite}.auth-orbit.middle{width:min(29vw,430px);border-style:dashed;animation:authOrbitReverse 19s linear infinite}.auth-orbit.inner{width:min(16vw,230px);animation:authOrbit 12s linear infinite}.auth-orbit.middle:after{top:12%;left:75%;background:#c5a871;box-shadow:0 0 14px 3px rgba(197,168,113,.28)}.auth-orbit.inner:after{top:auto;bottom:-3px;left:50%;width:5px;height:5px}
+.auth-probe{position:absolute;left:46%;top:42%;width:50px;height:50px;border:1px solid rgba(220,230,236,.34);border-radius:50%;transform:translate(-50%,-50%);display:grid;place-items:center}.auth-probe:before,.auth-probe:after{content:"";position:absolute;background:rgba(211,225,234,.24)}.auth-probe:before{width:92px;height:1px}.auth-probe:after{width:1px;height:92px}.auth-probe i{width:8px;height:8px;border-radius:50%;background:var(--warm);box-shadow:0 0 26px 8px rgba(208,224,234,.2)}
+.auth-telemetry{position:absolute;left:7%;top:15%;display:grid;gap:7px;color:rgba(214,226,234,.46);font-size:8px;letter-spacing:.14em;text-transform:uppercase}.auth-telemetry b{font-weight:400;color:rgba(244,242,236,.82)}.auth-telemetry-line{display:flex;gap:18px}.auth-telemetry-line span:first-child{width:74px}.auth-wave{position:absolute;left:5%;right:9%;top:73%;height:48px;overflow:hidden;border-block:1px solid rgba(180,202,216,.08)}.auth-wave:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 7px,rgba(166,192,209,.16) 8px,transparent 9px);mask-image:linear-gradient(180deg,transparent,black 45%,transparent);animation:authWave 5s linear infinite}
+.auth-route{position:absolute;right:4%;top:16%;display:grid;gap:18px;width:150px}.auth-route-step{position:relative;padding-left:24px;color:rgba(207,221,230,.28);font-size:8px;letter-spacing:.13em;text-transform:uppercase;transition:color .4s var(--ease)}.auth-route-step:before{content:"";position:absolute;left:0;top:1px;width:7px;height:7px;border:1px solid rgba(198,217,229,.24);border-radius:50%;transition:.4s}.auth-route-step:not(:last-child):after{content:"";position:absolute;left:3px;top:12px;width:1px;height:15px;background:rgba(198,217,229,.12)}.auth-route-step.is-complete{color:rgba(177,205,190,.58)}.auth-route-step.is-complete:before{border-color:#779b87;background:#779b87}.auth-route-step.is-active{color:var(--warm)}.auth-route-step.is-active:before{border-color:var(--warm);background:var(--warm);box-shadow:0 0 0 5px rgba(220,230,236,.09),0 0 16px rgba(220,230,236,.4)}
+.auth-form-side{z-index:5;min-height:100vh;padding:32px clamp(34px,6vw,92px);color:var(--warm);background:rgba(5,6,7,.72);border-left:1px solid rgba(244,242,236,.08);backdrop-filter:blur(18px);transform:none}.auth-form-top{align-items:center}.auth-form-top .lang-switch{color:var(--warm);border-color:rgba(244,242,236,.18);background:transparent}.auth-form-top .lang-switch:hover{background:var(--warm);color:var(--black)}.mode-button{color:rgba(244,242,236,.54);border-color:rgba(244,242,236,.16)}.mode-button.is-active{color:var(--black);background:var(--warm)}.auth-panel{width:min(100%,440px)}.auth-kicker{color:rgba(180,199,212,.48)}.auth-panel h1{color:var(--warm);font-size:clamp(40px,4vw,62px)}.auth-subtitle{color:rgba(244,242,236,.46)}.field label{color:rgba(190,207,218,.48)}.field input{color:var(--warm);border-bottom-color:rgba(204,219,228,.2)}.field input:focus{border-color:rgba(244,242,236,.78)}.field input::placeholder{color:rgba(208,219,226,.24)}.show-password{color:rgba(205,218,226,.42)}.form-meta{color:rgba(244,242,236,.42)}.form-meta a{text-decoration-color:rgba(244,242,236,.28)}.check input{accent-color:var(--warm)}.auth-submit{border-color:var(--warm);background:var(--warm);color:var(--black)}.auth-submit:hover{background:transparent;color:var(--warm)}.auth-submit[data-state="success"]{background:#779b87;border-color:#779b87;color:#050607}.auth-switch{color:rgba(244,242,236,.4)}.auth-switch button{color:var(--warm);text-decoration-color:rgba(244,242,236,.34)}.prototype-note{color:rgba(190,208,219,.28)}
+.field.has-error input{border-bottom-color:#c5a871}.field-error{display:block;margin-top:7px;color:#c5a871;font-size:9px;letter-spacing:.08em;text-transform:uppercase}.check.has-error{color:#c5a871}
+@keyframes authOrbit{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(360deg)}}@keyframes authOrbitReverse{from{transform:translate(-50%,-50%) rotate(360deg)}to{transform:translate(-50%,-50%) rotate(0)}}@keyframes authScan{to{transform:translate(-50%,-50%) rotate(360deg)}}@keyframes authWave{to{transform:translateX(34px)}}
+@media(max-width:980px){.auth-layout{display:block}.auth-visual{position:absolute;inset:0;display:flex;border:0}.auth-form-side{position:relative;width:min(62vw,520px);margin-left:auto}.auth-statement{display:none}.auth-map{inset:68px 30vw 70px 0}.auth-route{right:0}.auth-orbit.outer{width:min(62vw,520px)}.auth-orbit.middle{width:min(44vw,360px)}.auth-orbit.inner{width:min(24vw,200px)}}
+@media(max-width:680px){.auth-form-side{width:100%;padding:24px;background:rgba(5,6,7,.84)}.auth-map{inset:54px -26% 20px -46%;opacity:.52}.auth-route,.auth-telemetry{display:none}.auth-panel{margin:64px auto 30px}.auth-form-top{position:relative;z-index:8}.auth-probe{left:50%}.auth-scan,.auth-orbit{left:50%}}
+@media(prefers-reduced-motion:reduce){.auth-scan,.auth-orbit,.auth-wave:before{animation:none}.auth-map{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="particle-canvas" aria-hidden="true"></canvas><div class="noise" aria-hidden="true"></div>
+<nav class="nav" id="nav">
+  <a class="nav-brand brand-wordmark" href="#top"><span class="space">Space</span><span class="agent">Agent</span></a>
+  <div class="nav-links"><a href="#product">Product</a><a href="#principles">Principles</a><a href="#system">System</a><a href="#access">Access</a></div>
+  <div class="nav-actions"><button class="lang-switch" type="button" data-lang-switch aria-label="Switch language"><span data-lang-label>EN</span></button><a href="#signin" data-auth="signin">Sign in</a><a class="nav-enter" href="#register" data-auth="register">Enter</a></div>
+</nav>
+<main id="top">
+<section class="immersive" id="immersive">
+  <div class="stage">
+    <div class="brand-opening" id="brand-opening">
+      <h1 class="opening-wordmark brand-wordmark" id="wordmark"><span class="space">Space</span><span class="agent">Agent</span></h1>
+      <div class="scroll-cue" id="scroll-cue"><span>Scroll</span><span class="scroll-line"></span></div>
+    </div>
+    <div class="hero" id="hero"><div class="hero-content" id="hero-content">
+      <h1>Build intelligence<br>that keeps moving.</h1>
+      <p class="hero-copy">Create agents that reason, remember, and act using your knowledge and tools. Observe every run. Improve continuously.</p>
+      <div class="hero-actions"><a class="primary" href="#register" data-auth="register">Start building →</a><a class="secondary" href="#next-section">See how it works →</a></div>
+    </div></div>
+  </div>
+</section>
+<div class="next-section-anchor" id="next-section"></div>
+
+<div class="story" id="product">
+  <section class="principles" id="principles">
+    <div class="principles-copy">
+      <div class="eyebrow">A durable agent system</div>
+      <p>Not another chat window. SpaceAgent gives every goal a plan, every action a trace, and every outcome a place to live.</p>
+    </div>
+    <div class="principle-list">
+      <article class="principle reveal">
+        <span class="principle-index">01 / INTENT</span>
+        <h2>Start with work,<br>not prompts.</h2>
+        <p>Turn a goal into projects, tasks, and reviewable plans. Agents inherit the right context without owning the work itself.</p>
+      </article>
+      <article class="principle reveal">
+        <span class="principle-index">02 / EXECUTION</span>
+        <h2>See every move<br>as it happens.</h2>
+        <p>Follow reasoning, model calls, tools, checkpoints, approvals, and handoffs in one continuous run timeline.</p>
+      </article>
+      <article class="principle reveal">
+        <span class="principle-index">03 / MEMORY</span>
+        <h2>Keep what matters.<br>Discard the noise.</h2>
+        <p>Build durable project knowledge from verified outcomes while conversations remain lightweight and recoverable.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="system-section" id="system">
+    <div class="system-head">
+      <h2>One system.<br>Every state.</h2>
+      <div class="system-intro">
+        <p>SpaceAgent keeps plans, workspaces, runs, model usage, tools, and approvals connected—without hiding the evidence behind a friendly answer.</p>
+        <div class="system-note"><i></i><span>Live, durable, recoverable</span></div>
+      </div>
+    </div>
+
+    <div class="console" aria-label="SpaceAgent product workspace concept">
+      <aside class="console-sidebar">
+        <div class="console-brand"><span>SpaceAgent</span><span>SA/01</span></div>
+        <div class="console-nav">
+          <span class="active"><b>Work</b><small>04</small></span>
+          <span><b>Agents</b><small>08</small></span>
+          <span><b>Resources</b><small>12</small></span>
+          <span><b>Operations</b><small>03</small></span>
+        </div>
+        <div class="console-user">Orbit Lab / Core team</div>
+      </aside>
+      <div class="console-main">
+        <div class="console-top">
+          <strong>Project / Release intelligence</strong>
+          <div class="console-top-meta"><span class="status-pill live">Run active</span><span class="status-pill">Qwen pool</span></div>
+        </div>
+        <div class="task-line">TASK-042 · Prepare the trusted beta release</div>
+        <div class="workspace">
+          <section class="task-panel">
+            <div class="panel-title"><span>Plan / 5 steps</span><span>60%</span></div>
+            <div class="task-items">
+              <div class="task-item done"><span class="task-dot"></span><div><b>Inspect release boundary</b><p>Dependencies, runtime and schema.</p></div><em>Done</em></div>
+              <div class="task-item done"><span class="task-dot"></span><div><b>Run architecture checks</b><p>Dependency rules verified.</p></div><em>Done</em></div>
+              <div class="task-item active"><span class="task-dot"></span><div><b>Validate provider path</b><p>Connection, chat and usage evidence.</p></div><em>Running</em></div>
+              <div class="task-item"><span class="task-dot"></span><div><b>Review artifacts</b><p>Patch and acceptance evidence.</p></div><em>Queued</em></div>
+            </div>
+          </section>
+          <section class="run-panel">
+            <div class="panel-title"><span>Run timeline</span><span>00:01:42</span></div>
+            <div class="run-chain" aria-label="Agent invocation chain"><span data-chain-stage="0">Context</span><i></i><span data-chain-stage="1">Model</span><i></i><span data-chain-stage="2">Tool</span><i></i><span data-chain-stage="3">Approval</span></div>
+            <div class="run-stream">
+              <span class="run-progress" id="run-progress" aria-hidden="true"></span>
+              <div class="run-event" data-run-stage="0"><time>10:42:08</time><div><strong>Context compiled</strong><span>Project blueprint, task memory and 3 knowledge sources selected.</span></div></div>
+              <div class="run-event" data-run-stage="1"><time>10:42:11</time><div><strong>Model route resolved</strong><span>Qwen primary · immutable price and budget evidence pinned.</span></div></div>
+              <div class="run-event" data-run-stage="2"><time>10:42:16</time><div><strong>Tool completed</strong><span>Architecture validation passed with no dependency violations.</span></div></div>
+              <div class="run-event approval" data-run-stage="3"><time>10:42:28</time><div><strong>Approval required</strong><span>Apply reviewed source change to the local integration ref.</span></div></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="capabilities">
+    <div class="cap-head">
+      <div><div class="eyebrow">The operating layer</div><h2>Built to stay<br>under control.</h2></div>
+      <p>Agents can move quickly because authority, evidence, and recovery stay explicit.</p>
+    </div>
+    <div class="cap-grid">
+      <article class="cap-card"><span class="cap-card-number">01 / ORCHESTRATE</span><div class="cap-orbit"></div><h3>Plan the work</h3><p>Projects, tasks, plans, agents, and isolated workspaces stay connected by design.</p></article>
+      <article class="cap-card"><span class="cap-card-number">02 / OBSERVE</span><div class="cap-orbit"></div><h3>Read the run</h3><p>Stream live progress, reconnect to durable events, and understand cost and tool evidence.</p></article>
+      <article class="cap-card"><span class="cap-card-number">03 / GOVERN</span><div class="cap-orbit"></div><h3>Approve the effect</h3><p>Keep secrets, mutations, budgets, and delivery behind exact, auditable boundaries.</p></article>
+    </div>
+  </section>
+
+  <section class="closing" id="access">
+    <div class="closing-copy">
+      <h2>Give intent<br><span>some gravity.</span></h2>
+      <a class="closing-action" href="#register" data-auth="register">Enter<br>SpaceAgent ↗</a>
+    </div>
+    <div class="footer-line"><span>SpaceAgent / 2026</span><span>Java authority · TypeScript interaction</span><span>Trusted beta</span></div>
+  </section>
+</div>
+</main>
+
+<section class="auth-portal" id="auth-portal" aria-hidden="true" aria-label="Account access">
+  <div class="auth-layout">
+    <aside class="auth-visual">
+      <div class="auth-visual-top">
+        <a class="auth-wordmark brand-wordmark" href="#top" data-auth-close><span class="space">Space</span><span class="agent">Agent</span></a>
+        <button class="auth-back" type="button" data-auth-close>← Back to site</button>
+      </div>
+      <div class="auth-map" id="auth-map" aria-hidden="true">
+        <span class="auth-coordinate north">N 31.2304 / E 121.4737</span>
+        <span class="auth-coordinate west">ACCESS VECTOR / SA-01</span>
+        <span class="auth-coordinate south">SIGNAL 99.82%</span>
+        <div class="auth-scan"></div>
+        <div class="auth-orbit outer"></div>
+        <div class="auth-orbit middle"></div>
+        <div class="auth-orbit inner"></div>
+        <div class="auth-probe"><i></i></div>
+        <div class="auth-telemetry">
+          <div class="auth-telemetry-line"><span>FIELD</span><b>SPACEAGENT</b></div>
+          <div class="auth-telemetry-line"><span>CHANNEL</span><b>PRIVATE / 01</b></div>
+          <div class="auth-telemetry-line"><span>STATE</span><b data-auth-state>SEARCHING</b></div>
+        </div>
+        <div class="auth-wave"></div>
+        <div class="auth-route">
+          <span class="auth-route-step is-active" data-auth-step="0">Identify signal</span>
+          <span class="auth-route-step" data-auth-step="1">Verify access</span>
+          <span class="auth-route-step" data-auth-step="2">Link workspace</span>
+        </div>
+      </div>
+      <div class="auth-statement">
+        <div class="eyebrow">Private control plane</div>
+        <h2 id="auth-visual-title">Return to<br>your orbit.</h2>
+        <p id="auth-visual-copy">Your projects, agents, runs, and approvals are waiting exactly where you left them.</p>
+      </div>
+      <div class="auth-signal" aria-hidden="true"></div>
+    </aside>
+
+    <div class="auth-form-side">
+      <div class="auth-form-top" role="tablist" aria-label="Account mode">
+        <button class="lang-switch" type="button" data-lang-switch aria-label="Switch language"><span data-lang-label>EN</span></button>
+        <button class="mode-button is-active" type="button" data-mode="signin" role="tab">Sign in</button>
+        <button class="mode-button" type="button" data-mode="register" role="tab">Create account</button>
+      </div>
+
+      <form class="auth-panel is-active" id="signin-panel" data-panel="signin" novalidate>
+        <div class="auth-kicker">Account access / 01</div>
+        <h1>Welcome back.</h1>
+        <p class="auth-subtitle">Continue to your SpaceAgent control plane.</p>
+        <div class="field"><label for="signin-identity">Email or username</label><input id="signin-identity" name="identity" autocomplete="username" placeholder="you@example.com" required></div>
+        <div class="field"><label for="signin-password">Password</label><input id="signin-password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required><button class="show-password" type="button" data-password="signin-password">Show</button></div>
+        <div class="form-meta"><label class="check"><input type="checkbox" checked><span>Keep me signed in</span></label><a href="#forgot">Forgot password?</a></div>
+        <button class="auth-submit" type="submit"><span>Enter workspace</span><span>→</span></button>
+        <p class="auth-switch"><span>New to SpaceAgent?</span> <button type="button" data-mode="register">Create an account</button></p>
+      </form>
+
+      <form class="auth-panel" id="register-panel" data-panel="register" novalidate>
+        <div class="auth-kicker">Create account / 02</div>
+        <h1>Start building.</h1>
+        <p class="auth-subtitle">Create your personal organization and first workspace.</p>
+        <div class="field"><label for="register-name">Display name</label><input id="register-name" name="name" autocomplete="name" placeholder="How should we address you?" required></div>
+        <div class="field"><label for="register-email">Email</label><input id="register-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+        <div class="field"><label for="register-password">Password</label><input id="register-password" name="password" type="password" minlength="8" autocomplete="new-password" placeholder="At least 8 characters" required><button class="show-password" type="button" data-password="register-password">Show</button></div>
+        <div class="form-meta"><label class="check"><input type="checkbox" required><span>I accept the terms</span></label><span>Trusted beta access</span></div>
+        <button class="auth-submit" type="submit"><span>Create workspace</span><span>→</span></button>
+        <p class="auth-switch"><span>Already have an account?</span> <button type="button" data-mode="signin">Sign in</button></p>
+      </form>
+
+      <div class="prototype-note">Interactive concept · No data is submitted</div>
+    </div>
+  </div>
+</section>
+<script>
+(()=>{'use strict';
+const canvas=document.getElementById('particle-canvas'),ctx=canvas.getContext('2d',{alpha:true}),immersive=document.getElementById('immersive'),brandOpening=document.getElementById('brand-opening'),wordmark=document.getElementById('wordmark'),scrollCue=document.getElementById('scroll-cue'),hero=document.getElementById('hero'),heroContent=document.getElementById('hero-content'),nav=document.getElementById('nav');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,TAU=Math.PI*2;let width=0,height=0,dpr=1,area=0,particles=[],progress=0,bottom=0,last=performance.now(),heroAlpha=0,textBounds=null,pointerX=0,pointerY=0,pointerTX=0,pointerTY=0;
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),mix=(a,b,t)=>a+(b-a)*t,smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a));return t*t*(3-2*t)},rand=(a,b)=>a+Math.random()*(b-a);
+function angleDensity(a){const x=Math.pow(Math.abs(Math.sin(a*1.21+.68)),.72),y=Math.pow(Math.abs(Math.sin(a*2.97-1.31)),1.38),z=Math.pow(Math.abs(Math.cos(a*.57+2.08)),1.74);return clamp(.1+x*.47+y*.27+z*.16,.08,1)}
+function sampleAngle(){for(let i=0;i<14;i++){const a=Math.random()*TAU;if(Math.random()<angleDensity(a))return a}return Math.random()*TAU}
+function geometry(){const m=width<768,px=reduced?0:pointerX*width*(m?.01:.015),py=reduced?0:pointerY*height*(m?.01:.015);return{cx:width*(m?.75:.85)+px,cy:height*(m?.45:.52)+py,scale:Math.max(width,height)*(m?.8:1.15),flatten:.38,diskThickness:.05,outerFalloff:1.8,horizonRadius:.16,photonRadius:.19}}
+function createParticle(i){const a=sampleAngle(),stream=Math.random()<.25,d=Math.pow(Math.random(),1.6),base=stream?mix(.5,1.4,Math.pow(Math.random(),.8)):mix(.2,1.2,d),irr=Math.sin(a*2.4+i*.01)*.1+Math.sin(a*.8+1.2)*.05,z=rand(-1,1);return{x:rand(-.2,1.2)*width,y:rand(-.2,1.2)*height,vx:0,vy:0,angleSeed:a,targetRadius:clamp(base+irr,.12,1.5),z,phase:Math.random()*TAU,speed:rand(.7,1.4),spin:(Math.random()<.05?-1:1)*rand(.8,1.2),size:Math.pow(Math.random(),2.2)*2+.3,alpha:Math.pow(Math.random(),1.5)*.8+.1,temperature:Math.random(),flicker:rand(.4,1.2),reveal:Math.pow(Math.random(),1.2)*.8,diskAffinity:clamp(Math.pow(Math.random(),.6)*(stream?1.2:1),0,1),prevX:0,prevY:0}}
+function build(){const n=width<768?900:Math.min(3000,Math.floor(area/500));particles=new Array(n);for(let i=0;i<n;i++){const p=createParticle(i);p.x=Math.random()*width;p.y=Math.random()*height;p.prevX=p.x;p.prevY=p.y;particles[i]=p}}
+function updateText(){if(heroAlpha<.05){textBounds=null;return}const r=heroContent.getBoundingClientRect(),px=width<768?30:80,py=width<768?30:60;textBounds={left:r.left-px,right:r.right+px,top:r.top-py,bottom:r.bottom+py,midY:(r.top+r.bottom)/2}}
+function resize(){width=Math.min(innerWidth,2560);height=innerHeight;area=width*height;dpr=Math.min(devicePixelRatio||1,width<768?1.2:1.75);canvas.width=Math.floor(width*dpr);canvas.height=Math.floor(height*dpr);canvas.style.width=width+'px';canvas.style.height=height+'px';ctx.setTransform(dpr,0,0,dpr,0,0);build();updateScroll()}
+function updateScroll(){const r=immersive.getBoundingClientRect(),range=Math.max(1,r.height-height);progress=clamp(-r.top/range);bottom=r.bottom;const bf=1-smooth(.05,.18,progress),bl=smooth(.05,.22,progress);brandOpening.style.opacity=bf.toFixed(3);wordmark.style.transform=`translate3d(0,${-20*bl}px,0) scale(${mix(1,.96,bl)})`;wordmark.style.filter=`blur(${mix(0,4,bl)}px)`;scrollCue.style.opacity=(1-smooth(.01,.08,progress)).toFixed(3);const hi=smooth(.72,.86,progress),ho=1-smooth(.95,1,progress);heroAlpha=hi*ho;hero.style.opacity=heroAlpha.toFixed(3);hero.style.pointerEvents=heroAlpha>.8?'auto':'none';heroContent.style.transform=`translateY(${mix(16,0,hi)}px)`;updateText();nav.classList.toggle('visible',progress>.65||scrollY>height*1.5);canvas.style.opacity=r.bottom>0?(1-smooth(.92,.98,progress)).toFixed(3):'0'}
+function textForce(q,d,deform){if(!textBounds||heroAlpha<.05)return 1;const off=(innerWidth-width)/2,x=q.x+off;if(x<textBounds.left||x>textBounds.right||q.y<textBounds.top||q.y>textBounds.bottom)return 1;const xp=clamp((textBounds.right-x)/(textBounds.right-textBounds.left)),yd=Math.abs(q.y-textBounds.midY)/((textBounds.bottom-textBounds.top)*.5),f=smooth(1,.2,yd)*smooth(0,1,xp)*deform*heroAlpha;d.vx+=160*f;d.vy+=(q.y<textBounds.midY?-1:1)*60*f;return 1-f*.6}
+function draw(now){const dt=Math.min(32,Math.max(1,now-last))/1000;last=now;pointerX=mix(pointerX,pointerTX,reduced?1:.04);pointerY=mix(pointerY,pointerTY,reduced?1:.04);ctx.clearRect(0,0,width,height);if(bottom>0){const p=progress,emerge=smooth(.08,.25,p),deform=smooth(.15,.45,p),collapse=smooth(.35,.65,p),disk=smooth(.5,.85,p),lens=smooth(.6,.9,p),t=reduced?0:now*.00015,g=geometry();for(const q of particles){const fx=q.x/width,fy=q.y/height,flow=Math.sin(fx*3+t)+Math.cos(fy*2.5-t)+q.phase,free=mix(10,2,deform)*q.speed,d={vx:Math.cos(flow)*free,vy:Math.sin(flow)*free};let dx=q.x-g.cx,dy=(q.y-g.cy)/g.flatten,r=Math.hypot(dx,dy)/g.scale,a=Math.atan2(dy,dx),rx=Math.cos(a),ry=Math.sin(a)*g.flatten,tx=-Math.sin(a),ty=Math.cos(a)*g.flatten,pref=q.angleSeed+t*.15*q.spin,desiredR=clamp(q.targetRadius*(1+Math.sin(pref*2.4+q.phase)*.1)*mix(1.5,.95,collapse),.15,1.6),radial=(desiredR-r)*g.scale*mix(.4,1.2,deform)-deform*(5+12/(r+.2));if(r<g.horizonRadius+.02)radial+=(g.horizonRadius+.02-r)*g.scale*5;let orbit=deform*mix(8,28,(q.z+1)*.5)*q.spin*(.8+.4/(r+.3));const plane=(q.y-g.cy)/(g.scale*g.flatten),dw=mix(.3,g.diskThickness*2.5,disk),close=Math.exp(-Math.pow(plane/Math.max(.01,dw),2));d.vy+=-plane*g.scale*disk*q.diskAffinity*.5;orbit*=1+close*disk*1.5;d.vx+=(rx*radial+tx*orbit)*deform;d.vy+=(ry*radial+ty*orbit)*deform;const ex=textForce(q,d,deform),resp=mix(1.5,6,deform);q.vx+=(d.vx-q.vx)*clamp(resp*dt);q.vy+=(d.vy-q.vy)*clamp(resp*dt);const drag=Math.pow(mix(.99,.96,deform),dt*60);q.vx*=drag;q.vy*=drag;q.x+=q.vx*dt;q.y+=q.vy*dt;const margin=width*.4;if(q.x<-margin||q.x>width+margin||q.y<-margin||q.y>height+margin){if(deform>.3){const na=sampleAngle(),nr=rand(1,g.outerFalloff);q.x=g.cx+Math.cos(na)*nr*g.scale;q.y=g.cy+Math.sin(na)*nr*g.scale*g.flatten}q.prevX=q.x;q.prevY=q.y}dx=q.x-g.cx;dy=(q.y-g.cy)/g.flatten;r=Math.hypot(dx,dy)/g.scale;if(deform>.5&&r<g.horizonRadius){q.prevX=q.x;q.prevY=q.y;continue}const hot=Math.exp(-Math.pow((r-g.photonRadius)/.15,2))*close;let br,bg,bb;if(q.temperature<.25){br=170;bg=182;bb=194}else if(q.temperature<.5){br=143;bg=162;bb=179}else if(q.temperature<.8){br=213;bg=222;bb=229}else{br=244;bg=242;bb=236}const heat=hot*disk,R=Math.round(mix(br,255,heat*.9)),G=Math.round(mix(bg,248,heat*.9)),B=Math.round(mix(bb,240,heat*.9)),z=(q.z+1)*.5;let alpha=q.alpha*smooth(q.reveal,q.reveal+.2,emerge)*ex*mix(.15,1,z);alpha*=reduced?1:.85+Math.sin(now*.002*q.flicker+q.phase)*.15;if(alpha<.02){q.prevX=q.x;q.prevY=q.y;continue}const size=q.size*mix(.3,2.5,z)*mix(.8,1.2,deform)*mix(1,1.4,heat),x=q.x+pointerX*z*40,y=q.y+pointerY*z*40;ctx.beginPath();ctx.arc(x,y,Math.max(.2,size),0,TAU);ctx.fillStyle=`rgba(${R},${G},${B},${alpha})`;ctx.fill();const dist=Math.hypot(x-q.prevX,y-q.prevY);if(deform>.5&&z>.6&&alpha>.1&&dist>1&&dist<40){ctx.beginPath();ctx.moveTo(q.prevX,q.prevY);ctx.lineTo(x,y);ctx.strokeStyle=`rgba(${R},${G},${B},${alpha*.4})`;ctx.lineWidth=size*.8;ctx.stroke()}if(q.z<0&&lens>.1){const ls=lens*q.diskAffinity*Math.exp(-Math.pow(r/.8,2));if(ls>.05){const rel=(q.x-g.cx)/g.scale,ay=g.cy+(q.y<g.cy?-1:1)*g.scale*g.flatten*(.3+.4*(1-clamp(Math.abs(rel)/.6))),ax=g.cx+rel*g.scale*1.1;ctx.beginPath();ctx.arc(ax,ay,Math.max(.2,size*mix(1,1.5,ls)),0,TAU);ctx.fillStyle=`rgba(${R},${G},${B},${alpha*ls*.6})`;ctx.fill()}}q.prevX=x;q.prevY=y}}if(!reduced)requestAnimationFrame(draw)}
+let ticking=false;addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(()=>{updateScroll();ticking=false;if(reduced)draw(performance.now())});ticking=true}},{passive:true});addEventListener('resize',resize,{passive:true});addEventListener('pointermove',e=>{if(reduced)return;pointerTX=(e.clientX/Math.max(1,innerWidth)-.5)*2;pointerTY=(e.clientY/Math.max(1,innerHeight)-.5)*2},{passive:true});addEventListener('pointerleave',()=>{pointerTX=0;pointerTY=0},{passive:true});document.addEventListener('visibilitychange',()=>last=performance.now());resize();if(!reduced)requestAnimationFrame(draw);else draw(performance.now());
+})();
+</script>
+<script>
+(()=>{'use strict';
+const portal=document.getElementById('auth-portal');
+const panels=[...document.querySelectorAll('[data-panel]')];
+const modeButtons=[...document.querySelectorAll('[data-mode]')];
+const visualTitle=document.getElementById('auth-visual-title');
+const visualCopy=document.getElementById('auth-visual-copy');
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const authMap=document.getElementById('auth-map'),authSteps=[...document.querySelectorAll('[data-auth-step]')],authState=document.querySelector('[data-auth-state]');
+let lastFocus=null,forgotActive=false,currentMode='signin',runStage=0,runAnimationStarted=false,authRouteStage=0;
+
+const languages=['en','zh','ja'];
+const languageLabels={en:'EN',zh:'中',ja:'日'};
+const messages={
+  scroll:['Scroll','滚动探索','スクロール'],
+  navProduct:['Product','产品','プロダクト'],navPrinciples:['Principles','理念','設計思想'],navSystem:['System','系统','システム'],navAccess:['Access','进入','アクセス'],navSignIn:['Sign in','登录','ログイン'],navEnter:['Enter','进入','はじめる'],
+  heroTitle:['Build intelligence<br>that keeps moving.','构建持续行动的<br>智能系统。','動き続ける知性を<br>構築する。'],
+  heroCopy:['Create agents that reason, remember, and act using your knowledge and tools. Observe every run. Improve continuously.','让 Agent 运用你的知识与工具进行推理、记忆和行动。看见每次运行，持续进化。','知識とツールを使って、考え、記憶し、行動するエージェントを。すべての実行を観測し、継続的に改善します。'],
+  heroPrimary:['Start building →','开始构建 →','構築をはじめる →'],heroSecondary:['See how it works →','了解运行方式 →','仕組みを見る →'],
+  principleEyebrow:['A durable agent system','耐久的 Agent 系统','永続するエージェントシステム'],principleIntro:['Not another chat window. SpaceAgent gives every goal a plan, every action a trace, and every outcome a place to live.','不只是另一个聊天窗口。SpaceAgent 为每个目标建立计划，为每次行动留下轨迹，也让每个结果有处可循。','単なるチャット画面ではありません。すべての目標に計画を、すべての行動に履歴を、すべての成果に居場所を与えます。'],
+  p1Index:['01 / INTENT','01 / 意图','01 / 意図'],p1Title:['Start with work,<br>not prompts.','从工作出发，<br>而不是提示词。','プロンプトではなく、<br>仕事から始める。'],p1Copy:['Turn a goal into projects, tasks, and reviewable plans. Agents inherit the right context without owning the work itself.','把目标拆成项目、任务和可审查的计划。Agent 获得正确上下文，但不取代工作的所有权。','目標をプロジェクト、タスク、レビュー可能な計画へ。エージェントは仕事を所有せず、必要な文脈だけを引き継ぎます。'],
+  p2Index:['02 / EXECUTION','02 / 执行','02 / 実行'],p2Title:['See every move<br>as it happens.','实时看见<br>每一步行动。','すべての動きを<br>リアルタイムに。'],p2Copy:['Follow reasoning, model calls, tools, checkpoints, approvals, and handoffs in one continuous run timeline.','在一条连续时间线里追踪推理、模型调用、工具、检查点、审批与交接。','推論、モデル呼び出し、ツール、チェックポイント、承認、引き継ぎを一つのタイムラインで追跡します。'],
+  p3Index:['03 / MEMORY','03 / 记忆','03 / 記憶'],p3Title:['Keep what matters.<br>Discard the noise.','留下重要的，<br>丢掉噪音。','大切なものだけを残し、<br>ノイズを捨てる。'],p3Copy:['Build durable project knowledge from verified outcomes while conversations remain lightweight and recoverable.','从已验证结果中沉淀长期项目知识，同时让对话保持轻量且可恢复。','検証済みの成果から永続的なプロジェクト知識を構築し、会話は軽量かつ復元可能に保ちます。'],
+  systemTitle:['One system.<br>Every state.','一个系统，<br>承载所有状态。','一つのシステムで、<br>すべての状態を。'],systemIntro:['SpaceAgent keeps plans, workspaces, runs, model usage, tools, and approvals connected—without hiding the evidence behind a friendly answer.','SpaceAgent 将计划、工作区、运行、模型用量、工具和审批连接起来，不让证据消失在一句友好的回答背后。','計画、ワークスペース、実行、モデル利用、ツール、承認をつなぎ、親切な回答の裏に証拠を隠しません。'],systemNote:['Live, durable, recoverable','实时、耐久、可恢复','リアルタイム・永続・復元可能'],
+  work:['Work','工作','ワーク'],agents:['Agents','Agent','エージェント'],resources:['Resources','资源','リソース'],operations:['Operations','运行管理','オペレーション'],coreTeam:['Orbit Lab / Core team','Orbit Lab / 核心团队','Orbit Lab / コアチーム'],projectName:['Project / Release intelligence','项目 / 发布智能','プロジェクト / リリース知性'],runActive:['Run active','运行中','実行中'],runWaiting:['Awaiting approval','等待审批','承認待ち'],taskName:['TASK-042 · Prepare the trusted beta release','TASK-042 · 准备可信测试版发布','TASK-042 · Trusted Beta リリースを準備'],planTitle:['Plan / 5 steps','计划 / 5 个步骤','計画 / 5 ステップ'],
+  task1Title:['Inspect release boundary','检查发布边界','リリース境界を確認'],task1Copy:['Dependencies, runtime and schema.','依赖、运行时与数据结构。','依存関係、ランタイム、スキーマ。'],task2Title:['Run architecture checks','运行架构检查','アーキテクチャ検証'],task2Copy:['Dependency rules verified.','依赖规则已验证。','依存ルールを検証済み。'],task3Title:['Validate provider path','验证模型链路','プロバイダ経路を検証'],task3Copy:['Connection, chat and usage evidence.','连接、对话与用量证据。','接続、チャット、利用証跡。'],task4Title:['Review artifacts','审查交付物','成果物をレビュー'],task4Copy:['Patch and acceptance evidence.','补丁与验收证据。','パッチと受入証跡。'],done:['Done','完成','完了'],running:['Running','运行中','実行中'],queued:['Queued','排队中','待機中'],
+  timeline:['Run timeline','运行时间线','実行タイムライン'],context:['Context','上下文','コンテキスト'],model:['Model','模型','モデル'],tool:['Tool','工具','ツール'],approval:['Approval','审批','承認'],event1Title:['Context compiled','上下文已编译','コンテキストを構築'],event1Copy:['Project blueprint, task memory and 3 knowledge sources selected.','已选择项目蓝图、任务记忆与 3 个知识源。','プロジェクト設計、タスク記憶、3つの知識ソースを選択。'],event2Title:['Model route resolved','模型路由已解析','モデル経路を決定'],event2Copy:['Qwen primary · immutable price and budget evidence pinned.','已固定 Qwen 主模型、不可变价格与预算证据。','Qwen を選択し、不変の価格・予算証跡を固定。'],event3Title:['Tool completed','工具执行完成','ツール実行完了'],event3Copy:['Architecture validation passed with no dependency violations.','架构验证通过，未发现依赖违规。','依存違反なしでアーキテクチャ検証に合格。'],event4Title:['Approval required','需要审批','承認が必要'],event4Copy:['Apply reviewed source change to the local integration ref.','将已审查的源码变更应用到本地集成引用。','レビュー済みの変更をローカル統合参照へ適用します。'],
+  capEyebrow:['The operating layer','智能运行层','オペレーティングレイヤー'],capTitle:['Built to stay<br>under control.','为始终可控<br>而构建。','制御し続けるために<br>設計する。'],capIntro:['Agents can move quickly because authority, evidence, and recovery stay explicit.','正因为权限、证据和恢复机制始终明确，Agent 才能快速行动。','権限、証跡、復元が明確だからこそ、エージェントは素早く動けます。'],cap1Title:['Plan the work','规划工作','仕事を計画'],cap1Copy:['Projects, tasks, plans, agents, and isolated workspaces stay connected by design.','项目、任务、计划、Agent 与隔离工作区从设计上保持连接。','プロジェクト、タスク、計画、エージェント、分離ワークスペースを設計段階から接続。'],cap2Title:['Read the run','读懂运行','実行を読み解く'],cap2Copy:['Stream live progress, reconnect to durable events, and understand cost and tool evidence.','实时查看进度、重连耐久事件，并理解成本与工具证据。','進捗をストリーミングし、永続イベントへ再接続して、コストとツール証跡を理解。'],cap3Title:['Approve the effect','审批影响','効果を承認'],cap3Copy:['Keep secrets, mutations, budgets, and delivery behind exact, auditable boundaries.','让密钥、变更、预算和交付始终处于精确、可审计的边界内。','秘密、変更、予算、デリバリーを正確で監査可能な境界内に保ちます。'],
+  closingTitle:['Give intent<br><span>some gravity.</span>','让意图<br><span>拥有引力。</span>','意図に<br><span>重力を。</span>'],closingAction:['Enter<br>SpaceAgent ↗','进入<br>SpaceAgent ↗','SpaceAgentへ<br>入る ↗'],footerStack:['Java authority · TypeScript interaction','Java 权威状态 · TypeScript 交互','Java の権威状態 · TypeScript の操作層'],trustedBeta:['Trusted beta','可信测试版','Trusted Beta'],
+  back:['← Back to site','← 返回官网','← サイトへ戻る'],privatePlane:['Exploration access','探索接入舱','探索アクセス'],visualSignInTitle:['Re-enter<br>the field.','重新进入<br>探索场。','フィールドへ<br>再接続。'],visualSignInCopy:['Re-establish your identity, recover the last known coordinates, and continue from the exact point your work paused.','重新建立身份连接，恢复上次坐标，并从工作暂停的准确位置继续航程。','本人確認を再接続し、最後の座標を復元して、中断した地点から航路を再開します。'],visualRegisterTitle:['Chart<br>a new course.','绘制一条<br>新航线。','新しい航路を<br>描く。'],visualRegisterCopy:['Open a new workspace, define its first coordinates, and begin a trackable expedition through your systems.','建立新工作区，定义第一组坐标，开始一段全程可追踪的系统探索。','新しいワークスペースと最初の座標を定義し、追跡可能な探索を始めます。'],
+  authStepIdentify:['Identify signal','识别信号','信号を識別'],authStepVerify:['Verify access','验证通行','アクセス確認'],authStepLink:['Link workspace','连接工作区','ワークスペース接続'],authStateSearching:['SEARCHING','搜索中','探索中'],authStateVerified:['VERIFIED','已验证','確認済み'],authStateLinked:['LINKED','已连接','接続済み'],
+  tabSignIn:['Sign in','登录','ログイン'],tabRegister:['Create account','创建账户','アカウント作成'],signKicker:['Access vector / 01','接入坐标 / 01','アクセス座標 / 01'],signTitle:['Resume your course.','继续你的航程。','航路を再開。'],signSubtitle:['Verify your identity and reconnect to the last active workspace.','验证身份，并重新连接到上一个活动工作区。','本人確認を行い、最後のアクティブなワークスペースへ再接続します。'],identityLabel:['Email or username','邮箱或用户名','メールまたはユーザー名'],identityPlaceholder:['you@example.com','you@example.com','you@example.com'],passwordLabel:['Password','密码','パスワード'],passwordPlaceholder:['Enter your password','输入密码','パスワードを入力'],keepSigned:['Keep me signed in','保持登录','ログイン状態を保持'],forgot:['Forgot password?','忘记密码？','パスワードを忘れた？'],signSubmit:['Enter workspace','进入工作区','ワークスペースへ'],signLoading:['Opening channel','正在建立通道','チャネルを開いています'],signSuccess:['Channel linked','通道已连接','チャネル接続完了'],newUser:['New to SpaceAgent?','第一次使用 SpaceAgent？','SpaceAgent は初めて？'],createAccount:['Create an account','创建账户','アカウントを作成'],
+  regKicker:['Create account / 02','创建账户 / 02','アカウント作成 / 02'],regTitle:['Start building.','开始构建。','構築を始める。'],regSubtitle:['Create your personal organization and first workspace.','创建个人组织和第一个工作区。','個人組織と最初のワークスペースを作成します。'],nameLabel:['Display name','显示名称','表示名'],namePlaceholder:['How should we address you?','我们该如何称呼你？','お名前を入力'],emailLabel:['Email','邮箱','メール'],newPasswordPlaceholder:['At least 8 characters','至少 8 个字符','8文字以上'],acceptTerms:['I accept the terms','我接受相关条款','利用規約に同意'],betaAccess:['Trusted beta access','可信测试版访问','Trusted Beta アクセス'],regSubmit:['Create workspace','创建工作区','ワークスペースを作成'],regLoading:['Creating workspace','正在创建工作区','ワークスペースを作成中'],regSuccess:['Account ready','账户已就绪','アカウント準備完了'],hasAccount:['Already have an account?','已经有账户？','すでにアカウントをお持ち？'],show:['Show','显示','表示'],hide:['Hide','隐藏','非表示'],fieldRequired:['Coordinate required','请填写接入坐标','座標を入力してください'],fieldEmail:['Invalid communication address','通信地址格式无效','通信アドレスが無効です'],fieldPassword:['Minimum key length: 8','密钥至少需要 8 位','キーは8文字以上必要です'],termsRequired:['Accept terms to continue','接受条款后才能继续','続行するには規約への同意が必要です'],prototypeNote:['Interactive concept · No data is submitted','交互原型 · 不会提交任何数据','インタラクティブ試作 · データは送信されません'],forgotNote:['Password recovery would continue here · Prototype only','密码找回流程将在此继续 · 仅原型演示','パスワード復旧はここから続きます · 試作のみ']
+};
+
+let currentLanguage=localStorage.getItem('spaceagent-prototype-language');
+if(!languages.includes(currentLanguage))currentLanguage=navigator.language.startsWith('zh')?'zh':navigator.language.startsWith('ja')?'ja':'en';
+const t=key=>messages[key]?.[languages.indexOf(currentLanguage)]??key;
+
+const textBindings=[
+  ['.scroll-cue > span:first-child','scroll'],['.nav-links a:nth-child(1)','navProduct'],['.nav-links a:nth-child(2)','navPrinciples'],['.nav-links a:nth-child(3)','navSystem'],['.nav-links a:nth-child(4)','navAccess'],['.nav-actions > a[data-auth="signin"]','navSignIn'],['.nav-actions > a[data-auth="register"]','navEnter'],
+  ['.hero-copy','heroCopy'],['.hero-actions .primary','heroPrimary'],['.hero-actions .secondary','heroSecondary'],['.principles-copy .eyebrow','principleEyebrow'],['.principles-copy p','principleIntro'],
+  ['.principle:nth-child(1) .principle-index','p1Index'],['.principle:nth-child(1) p','p1Copy'],['.principle:nth-child(2) .principle-index','p2Index'],['.principle:nth-child(2) p','p2Copy'],['.principle:nth-child(3) .principle-index','p3Index'],['.principle:nth-child(3) p','p3Copy'],
+  ['.system-intro p','systemIntro'],['.system-note span','systemNote'],['.console-nav span:nth-child(1) b','work'],['.console-nav span:nth-child(2) b','agents'],['.console-nav span:nth-child(3) b','resources'],['.console-nav span:nth-child(4) b','operations'],['.console-user','coreTeam'],['.console-top strong','projectName'],['.task-line','taskName'],['.task-panel .panel-title span:first-child','planTitle'],
+  ['.task-item:nth-child(1) b','task1Title'],['.task-item:nth-child(1) p','task1Copy'],['.task-item:nth-child(1) em','done'],['.task-item:nth-child(2) b','task2Title'],['.task-item:nth-child(2) p','task2Copy'],['.task-item:nth-child(2) em','done'],['.task-item:nth-child(3) b','task3Title'],['.task-item:nth-child(3) p','task3Copy'],['.task-item:nth-child(3) em','running'],['.task-item:nth-child(4) b','task4Title'],['.task-item:nth-child(4) p','task4Copy'],['.task-item:nth-child(4) em','queued'],
+  ['.run-panel .panel-title span:first-child','timeline'],['[data-chain-stage="0"]','context'],['[data-chain-stage="1"]','model'],['[data-chain-stage="2"]','tool'],['[data-chain-stage="3"]','approval'],['[data-run-stage="0"] strong','event1Title'],['[data-run-stage="0"] div span','event1Copy'],['[data-run-stage="1"] strong','event2Title'],['[data-run-stage="1"] div span','event2Copy'],['[data-run-stage="2"] strong','event3Title'],['[data-run-stage="2"] div span','event3Copy'],['[data-run-stage="3"] strong','event4Title'],['[data-run-stage="3"] div span','event4Copy'],
+  ['.cap-head .eyebrow','capEyebrow'],['.cap-head > p','capIntro'],['.cap-card:nth-child(1) h3','cap1Title'],['.cap-card:nth-child(1) p','cap1Copy'],['.cap-card:nth-child(2) h3','cap2Title'],['.cap-card:nth-child(2) p','cap2Copy'],['.cap-card:nth-child(3) h3','cap3Title'],['.cap-card:nth-child(3) p','cap3Copy'],['.footer-line span:nth-child(2)','footerStack'],['.footer-line span:nth-child(3)','trustedBeta'],
+  ['.auth-back','back'],['.auth-statement .eyebrow','privatePlane'],['[data-auth-step="0"]','authStepIdentify'],['[data-auth-step="1"]','authStepVerify'],['[data-auth-step="2"]','authStepLink'],['[role="tab"][data-mode="signin"]','tabSignIn'],['[role="tab"][data-mode="register"]','tabRegister'],['#signin-panel .auth-kicker','signKicker'],['#signin-panel h1','signTitle'],['#signin-panel .auth-subtitle','signSubtitle'],['label[for="signin-identity"]','identityLabel'],['label[for="signin-password"]','passwordLabel'],['#signin-panel .check span','keepSigned'],['a[href="#forgot"]','forgot'],['#signin-panel .auth-switch span','newUser'],['#signin-panel .auth-switch button','createAccount'],
+  ['#register-panel .auth-kicker','regKicker'],['#register-panel h1','regTitle'],['#register-panel .auth-subtitle','regSubtitle'],['label[for="register-name"]','nameLabel'],['label[for="register-email"]','emailLabel'],['label[for="register-password"]','passwordLabel'],['#register-panel .check span','acceptTerms'],['#register-panel .form-meta > span','betaAccess'],['#register-panel .auth-switch span','hasAccount'],['#register-panel .auth-switch button','tabSignIn']
+];
+const htmlBindings=[['.hero h1','heroTitle'],['.principle:nth-child(1) h2','p1Title'],['.principle:nth-child(2) h2','p2Title'],['.principle:nth-child(3) h2','p3Title'],['.system-head h2','systemTitle'],['.cap-head h2','capTitle'],['.closing h2','closingTitle'],['.closing-action','closingAction']];
+const placeholderBindings=[['#signin-identity','identityPlaceholder'],['#signin-password','passwordPlaceholder'],['#register-name','namePlaceholder'],['#register-email','identityPlaceholder'],['#register-password','newPasswordPlaceholder']];
+
+function submitKey(panel,state){
+  if(panel==='signin')return state==='loading'?'signLoading':state==='success'?'signSuccess':'signSubmit';
+  return state==='loading'?'regLoading':state==='success'?'regSuccess':'regSubmit';
+}
+function syncSubmitLabels(){document.querySelectorAll('.auth-submit').forEach(button=>{const panel=button.closest('[data-panel]').dataset.panel;button.querySelector('span').textContent=t(submitKey(panel,button.dataset.state||'idle'))})}
+function renderAuthRoute(stage){
+  authRouteStage=stage;
+  authSteps.forEach((item,index)=>{
+    item.classList.toggle('is-complete',index<stage);
+    item.classList.toggle('is-active',index===stage);
+  });
+  authState.textContent=t(stage===0?'authStateSearching':stage===1?'authStateVerified':'authStateLinked');
+}
+function translatePage(){
+  document.documentElement.lang=currentLanguage==='zh'?'zh-CN':currentLanguage==='ja'?'ja':'en';
+  document.title=currentLanguage==='zh'?'SpaceAgent — 入口体验原型':currentLanguage==='ja'?'SpaceAgent — エントリー体験':'SpaceAgent — Public Entry Concept';
+  textBindings.forEach(([selector,key])=>document.querySelectorAll(selector).forEach(node=>node.textContent=t(key)));
+  htmlBindings.forEach(([selector,key])=>document.querySelectorAll(selector).forEach(node=>node.innerHTML=t(key)));
+  placeholderBindings.forEach(([selector,key])=>document.querySelectorAll(selector).forEach(node=>node.placeholder=t(key)));
+  document.querySelectorAll('[data-lang-label]').forEach(node=>node.textContent=languageLabels[currentLanguage]);
+  const next=languages[(languages.indexOf(currentLanguage)+1)%languages.length];
+  document.querySelectorAll('[data-lang-switch]').forEach(button=>button.setAttribute('aria-label',`Switch to ${next==='zh'?'中文':next==='ja'?'日本語':'English'}`));
+  document.querySelectorAll('[data-password]').forEach(button=>{const input=document.getElementById(button.dataset.password);button.textContent=t(input.type==='password'?'show':'hide')});
+  document.querySelector('.prototype-note').textContent=t(forgotActive?'forgotNote':'prototypeNote');
+  syncSubmitLabels();setMode(currentMode,false);renderRunStage(runStage);renderAuthRoute(authRouteStage);
+}
+
+function setMode(mode,focus=true){
+  const next=mode==='register'?'register':'signin';
+  currentMode=next;
+  panels.forEach(panel=>panel.classList.toggle('is-active',panel.dataset.panel===next));
+  modeButtons.forEach(button=>{
+    const active=button.dataset.mode===next;
+    button.classList.toggle('is-active',active);
+    if(button.getAttribute('role')==='tab')button.setAttribute('aria-selected',String(active));
+  });
+  visualTitle.innerHTML=t(next==='signin'?'visualSignInTitle':'visualRegisterTitle');
+  visualCopy.textContent=t(next==='signin'?'visualSignInCopy':'visualRegisterCopy');
+  if(focus)setTimeout(()=>document.querySelector(`[data-panel="${next}"] input`)?.focus(),180);
+}
+
+function openAuth(mode){
+  lastFocus=document.activeElement;
+  setMode(mode,false);
+  portal.classList.add('is-open');
+  portal.setAttribute('aria-hidden','false');
+  renderAuthRoute(0);
+  document.body.style.overflow='hidden';
+  history.replaceState(null,'',`#${mode==='register'?'register':'signin'}`);
+  setTimeout(()=>document.querySelector(`[data-panel="${mode==='register'?'register':'signin'}"] input`)?.focus(),420);
+}
+
+function closeAuth(){
+  portal.classList.remove('is-open');
+  portal.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+  history.replaceState(null,'',location.pathname+location.search);
+  if(lastFocus instanceof HTMLElement)lastFocus.focus();
+}
+
+document.querySelectorAll('[data-auth]').forEach(link=>link.addEventListener('click',event=>{
+  event.preventDefault();openAuth(link.dataset.auth);
+}));
+document.querySelectorAll('[data-auth-close]').forEach(control=>control.addEventListener('click',event=>{
+  event.preventDefault();closeAuth();
+}));
+modeButtons.forEach(button=>button.addEventListener('click',()=>setMode(button.dataset.mode)));
+document.querySelectorAll('[data-lang-switch]').forEach(button=>button.addEventListener('click',()=>{
+  currentLanguage=languages[(languages.indexOf(currentLanguage)+1)%languages.length];
+  localStorage.setItem('spaceagent-prototype-language',currentLanguage);
+  translatePage();
+}));
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&portal.classList.contains('is-open'))closeAuth()});
+portal.addEventListener('pointermove',event=>{
+  if(reducedMotion)return;
+  const x=(event.clientX/Math.max(1,innerWidth)-.5)*12,y=(event.clientY/Math.max(1,innerHeight)-.5)*12;
+  portal.style.setProperty('--auth-shift-x',`${x}px`);
+  portal.style.setProperty('--auth-shift-y',`${y}px`);
+});
+portal.addEventListener('pointerleave',()=>{
+  portal.style.setProperty('--auth-shift-x','0px');
+  portal.style.setProperty('--auth-shift-y','0px');
+});
+if(!reducedMotion)setInterval(()=>{if(portal.classList.contains('is-open'))renderAuthRoute((authRouteStage+1)%3)},1700);
+
+document.querySelectorAll('[data-password]').forEach(button=>button.addEventListener('click',()=>{
+  const input=document.getElementById(button.dataset.password);
+  const reveal=input.type==='password';
+  input.type=reveal?'text':'password';
+  button.textContent=t(reveal?'hide':'show');
+}));
+
+function clearInputError(input){
+  const container=input.closest('.field,.check');
+  if(!container)return;
+  container.classList.remove('has-error');
+  container.querySelector('.field-error')?.remove();
+}
+function validateAuthForm(form){
+  const inputs=[...form.querySelectorAll('input')];
+  inputs.forEach(clearInputError);
+  const invalid=inputs.filter(input=>!input.checkValidity());
+  invalid.forEach(input=>{
+    const container=input.closest('.field,.check');
+    if(!container)return;
+    container.classList.add('has-error');
+    if(input.type==='checkbox')return;
+    const error=document.createElement('span');
+    error.className='field-error';
+    error.textContent=t(input.validity.typeMismatch?'fieldEmail':input.validity.tooShort?'fieldPassword':'fieldRequired');
+    container.appendChild(error);
+  });
+  if(invalid.some(input=>input.type==='checkbox'))document.querySelector('.prototype-note').textContent=t('termsRequired');
+  invalid[0]?.focus();
+  return invalid.length===0;
+}
+document.querySelectorAll('.auth-panel input').forEach(input=>input.addEventListener('input',()=>clearInputError(input)));
+
+document.querySelectorAll('.auth-panel').forEach(form=>form.addEventListener('submit',event=>{
+  event.preventDefault();
+  if(!validateAuthForm(form))return;
+  const button=form.querySelector('.auth-submit');
+  button.dataset.state='loading';button.disabled=true;syncSubmitLabels();renderAuthRoute(1);
+  setTimeout(()=>{
+    button.dataset.state='success';syncSubmitLabels();renderAuthRoute(2);
+    setTimeout(()=>{button.dataset.state='';button.disabled=false;syncSubmitLabels();renderAuthRoute(0)},1700);
+  },900);
+}));
+
+document.querySelector('a[href="#forgot"]')?.addEventListener('click',event=>{
+  event.preventDefault();
+  forgotActive=true;
+  document.querySelector('.prototype-note').textContent=t('forgotNote');
+});
+
+const runEvents=[...document.querySelectorAll('[data-run-stage]')];
+const chainStages=[...document.querySelectorAll('[data-chain-stage]')];
+const chainLines=[...document.querySelectorAll('.run-chain i')];
+const runProgress=document.getElementById('run-progress');
+const runStatus=document.querySelector('.console-top .status-pill.live');
+const runTimer=document.querySelector('.run-panel .panel-title span:last-child');
+function renderRunStage(stage){
+  runStage=stage;
+  runEvents.forEach((event,index)=>{
+    event.classList.toggle('is-complete',index<stage);
+    event.classList.toggle('is-active',index===stage);
+  });
+  chainStages.forEach((item,index)=>{
+    item.classList.toggle('is-complete',index<stage);
+    item.classList.toggle('is-active',index===stage);
+  });
+  chainLines.forEach((line,index)=>{
+    const active=index<stage;
+    if(active&&!line.classList.contains('is-active')){line.classList.remove('is-active');void line.offsetWidth;line.classList.add('is-active')}
+    if(!active)line.classList.remove('is-active');
+  });
+  runProgress.style.transform=`scaleY(${stage/3})`;
+  runStatus.textContent=t(stage===3?'runWaiting':'runActive');
+  runStatus.classList.toggle('waiting',stage===3);
+  const elapsed=102+stage*7;
+  runTimer.textContent=`00:${String(Math.floor(elapsed/60)).padStart(2,'0')}:${String(elapsed%60).padStart(2,'0')}`;
+}
+function advanceRun(){
+  const delay=runStage===3?2400:1450;
+  setTimeout(()=>{renderRunStage(runStage===3?0:runStage+1);advanceRun()},delay);
+}
+function startRunAnimation(){
+  if(runAnimationStarted)return;runAnimationStarted=true;
+  if(reducedMotion){renderRunStage(3);return}
+  renderRunStage(0);advanceRun();
+}
+if('IntersectionObserver' in window){
+  const runObserver=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){startRunAnimation();runObserver.disconnect()}},{threshold:.25});
+  runObserver.observe(document.querySelector('.console'));
+}else startRunAnimation();
+
+const revealObserver='IntersectionObserver' in window?new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');revealObserver.unobserve(entry.target)}});
+},{threshold:.22}):null;
+document.querySelectorAll('.reveal').forEach(item=>revealObserver?revealObserver.observe(item):item.classList.add('is-visible'));
+
+translatePage();
+if(location.hash==='#signin'||location.hash==='#register')openAuth(location.hash.slice(1));
+})();
+</script>
+</body>
+</html>

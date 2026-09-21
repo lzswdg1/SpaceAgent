@@ -1,0 +1,14 @@
+{
+  "contractVersion": "multi-agent/v1",
+  "requestId": "ma-req-plan",
+  "agentRunId": "run-plan",
+  "command": {
+    "kind": "PLAN_PROPOSED",
+    "payload": {
+      "rootTaskId": "task-root",
+      "strategySummary": "Create one bounded step from the current durable goal",
+      "steps": [{ "stepKey": "execute", "goal": "Implement durable planning", "dependsOnStepKeys": [] }]
+    }
+  },
+  "orchestration": { "route": "planner", "ephemeral": true }
+}

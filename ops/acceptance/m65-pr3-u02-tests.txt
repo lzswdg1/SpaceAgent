@@ -1,0 +1,28 @@
+# M65-PR3-U02 Project, graph and Automation production selection
+ProjectCodingCoordinatorTest
+PlatformProjectHttpTest
+ProjectPlanExecutionRepositoryTest
+ProjectPlanReadyWaveTest
+ProjectPlanMergeBarrierRepositoryTest
+ProjectReconciliationIntegrationServiceTest
+GraphV2RuntimeApplicationServiceTest
+GraphV2ContinuationApplicationTest
+PlatformMultiAgentOrchestrationAdapterTest
+PlatformRuntimeCoordinationTest
+PlatformRuntimeCoordinationPostgresTest
+SupervisorPolicyDomainTest
+SupervisorPolicyResolutionTest
+SupervisorShadowComparisonTest
+SupervisorShadowMetricsTest
+AutomationTriggerApplicationServiceTest
+AutomationTriggerRepositoryPostgresTest
+AutomationEventDispatchWorkerTest
+AutomationEventExecutionApplicationServiceTest
+PlatformAutomationTriggerHttpControllerTest
+PlatformAutomationWebhookHttpTest
+AutomationInternalEventCoordinatorTest
+AutomationRepositoryEventCoordinatorTest
+
+# Required assertions: production coordinator/HTTP/worker entry, PostgreSQL multi-worker and restart,
+# stable merge order and reconciliation wait, graph exact continuation/UNKNOWN, pinned Supervisor policy,
+# Trigger management through admitted occurrence, automatic dispatch and RuntimeContinuation.

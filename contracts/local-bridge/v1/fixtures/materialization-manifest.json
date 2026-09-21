@@ -1,0 +1,1 @@
+{"contractVersion":"local-materialization/v1","sessionId":"session-1","requestId":"request-2","manifestSha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","totalBytes":5,"fileCount":1,"entries":[{"relativePath":"src/App.java","contentLength":5,"contentSha256":"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}]}

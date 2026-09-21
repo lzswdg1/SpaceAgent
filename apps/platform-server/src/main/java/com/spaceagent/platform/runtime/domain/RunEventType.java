@@ -1,0 +1,20 @@
+package com.spaceagent.platform.runtime.domain;
+
+/** Stable Java-owned execution event vocabulary. */
+public enum RunEventType {
+    RUN_CREATED,
+    RUN_STATE_CHANGED,
+    STEP_STARTED,
+    STEP_COMPLETED,
+    STEP_FAILED,
+    CHECKPOINT_CREATED,
+    CURSOR_ADVANCED,
+    ORCHESTRATION_COMMAND_ACCEPTED,
+    WORKER_LEASE_ACQUIRED,
+    WORKER_LEASE_RELEASED,
+    CONTINUATION_ENQUEUED,
+    CONTINUATION_CLAIMED,
+    CONTINUATION_COMPLETED,
+    CONTINUATION_FAILED,
+    RESOURCE_OBSERVED
+}

@@ -1,0 +1,7 @@
+{
+  "contractVersion": "multi-agent/v1",
+  "requestId": "ma-req-complete",
+  "agentRunId": "run-complete",
+  "command": { "kind": "COMPLETED", "payload": { "summary": "No additional orchestration step is required" } },
+  "orchestration": { "route": "complete", "ephemeral": true }
+}

@@ -1,0 +1,229 @@
+groups:
+  - name: spaceagent-rag
+    rules:
+      - alert: SpaceAgentKnowledgeIndexBacklog
+        expr: spaceagent_rag_index_oldest_pending_seconds > 900
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Knowledge indexing has pending work older than 15 minutes"
+      - alert: SpaceAgentKnowledgeReconciliationRequired
+        expr: spaceagent_rag_index_jobs{state="RECONCILIATION_REQUIRED"} > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Knowledge indexing requires evidence-driven reconciliation"
+      - alert: SpaceAgentKnowledgeDeletionBacklog
+        expr: spaceagent_rag_deletions_pending > 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Knowledge deletion queue has not drained for 30 minutes"
+      - alert: SpaceAgentKnowledgeRetrievalDegraded
+        expr: sum(rate(spaceagent_rag_retrieval_duration_seconds_count{outcome="degraded"}[5m])) / clamp_min(sum(rate(spaceagent_rag_retrieval_duration_seconds_count[5m])), 0.001) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "More than 20 percent of Knowledge retrievals are degraded"
+  - name: spaceagent-service-health
+    rules:
+      - alert: SpaceAgentServiceDown
+        expr: up{job="platform-server"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SpaceAgent service is unavailable"
+          description: "{{ $labels.job }} has not been scraped successfully for two minutes."
+
+      - alert: SpaceAgentAlertmanagerDown
+        expr: up{job="alertmanager"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SpaceAgent Alertmanager is unavailable"
+          description: "Prometheus cannot reach the local alert routing and silencing plane."
+
+  - name: spaceagent-jvm-health
+    rules:
+      - alert: SpaceAgentJvmHeapUsageHigh
+        expr: |
+          (
+            sum(jvm_memory_used_bytes{area="heap",job="platform-server"}) by (job, instance)
+            /
+            clamp_min(sum(jvm_memory_max_bytes{area="heap",job="platform-server"}) by (job, instance), 1)
+          ) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JVM heap usage is above 85%"
+          description: "{{ $labels.job }} heap usage has remained high for ten minutes."
+
+      - alert: SpaceAgentJvmGcPauseP99High
+        expr: |
+          histogram_quantile(
+            0.99,
+            sum(rate(jvm_gc_pause_seconds_bucket{job="platform-server"}[5m])) by (le, job, instance)
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JVM GC pause P99 is above 500 ms"
+          description: "{{ $labels.job }} has sustained high GC pause latency."
+
+      - alert: SpaceAgentJvmGcOverheadHigh
+        expr: |
+          sum(rate(jvm_gc_pause_seconds_sum{job="platform-server"}[5m])) by (job, instance) > 0.10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JVM is spending more than 10% of wall time in GC pauses"
+          description: "{{ $labels.job }} has sustained GC overhead."
+
+      - alert: SpaceAgentJvmLiveThreadsHigh
+        expr: jvm_threads_live_threads{job="platform-server"} > 300
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JVM live thread count is high"
+          description: "{{ $labels.job }} has more than 300 live threads."
+
+      - alert: SpaceAgentHttpP95LatencyHigh
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(http_server_requests_seconds_bucket{
+              job="platform-server",
+              uri!~".*/stream"
+            }[5m])) by (le, job, instance)
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HTTP server P95 latency is above one second"
+          description: "{{ $labels.job }} non-streaming request latency is elevated."
+
+      - alert: SpaceAgentHikariConnectionsPending
+        expr: hikaricp_connections_pending{job="platform-server"} > 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database connection requests are waiting"
+          description: "{{ $labels.job }} has pending HikariCP connection requests."
+
+      - alert: SpaceAgentHikariPoolNearExhaustion
+        expr: |
+          (
+            hikaricp_connections_active{job="platform-server"}
+            /
+            clamp_min(hikaricp_connections_max{job="platform-server"}, 1)
+          ) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database connection pool is near exhaustion"
+          description: "{{ $labels.job }} HikariCP active connections exceed 85% of the configured maximum."
+
+  - name: spaceagent-agent-slo
+    rules:
+      # Database-projection gauges are identical on every application replica. Always aggregate
+      # them with max so adding replicas cannot multiply the platform-wide count.
+      - alert: SpaceAgentAgentTelemetryRefreshFailed
+        expr: max(spaceagent_agent_telemetry_refresh_success) == 0 or absent(spaceagent_agent_telemetry_refresh_success)
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Agent operational metric refresh is failing"
+          description: "The last SQL-backed Agent telemetry refresh failed for at least two minutes."
+
+      - alert: SpaceAgentAgentTelemetryStale
+        expr: max(spaceagent_agent_telemetry_refresh_age_seconds) > 60
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Agent operational metrics are stale"
+          description: "No successful Agent telemetry snapshot has been produced for more than one minute."
+
+      - alert: SpaceAgentModelOutcomeUnknown
+        expr: max(spaceagent_agent_model_calls_window{outcome="unknown"}) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "A model call has an UNKNOWN outcome"
+          description: "At least one model call in the rolling window requires reconciliation; do not retry blindly."
+
+      - alert: SpaceAgentToolOutcomeUnknown
+        expr: max(spaceagent_agent_tool_executions_window{outcome="unknown"}) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "A Tool execution has an UNKNOWN outcome"
+          description: "At least one Tool side effect in the rolling window requires reconciliation."
+
+      - alert: SpaceAgentRunErrorRatioHigh
+        expr: |
+          max(spaceagent_agent_runs_window{outcome="total"}) >= 5
+          and
+          (
+            max(spaceagent_agent_runs_window{outcome="error"})
+            /
+            clamp_min(max(spaceagent_agent_runs_window{outcome="total"}), 1)
+          ) > 0.20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Agent Run error ratio exceeds 20%"
+          description: "At least five Runs occurred and more than 20% failed in the rolling window."
+
+      - alert: SpaceAgentRunP95LatencyHigh
+        expr: max(spaceagent_agent_latency_p95_seconds{operation="agent_run"}) > 300
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Agent Run P95 latency exceeds five minutes"
+          description: "Completed Agent Runs have sustained high end-to-end latency."
+
+      - alert: SpaceAgentModelFirstChunkP95High
+        expr: max(spaceagent_agent_latency_p95_seconds{operation="model_first_chunk"}) > 10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Streaming model P95 time to first chunk exceeds ten seconds"
+          description: "Durable ModelCall first-chunk evidence indicates elevated streamed response latency."
+
+      - alert: SpaceAgentRecoveryStalled
+        expr: max(spaceagent_agent_runs_recovering) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Agent recovery appears stalled"
+          description: "At least one durable Agent Run has remained in RECOVERING state for fifteen minutes."
+
+      - alert: SpaceAgentContinuationFailure
+        expr: max(spaceagent_agent_evidence_window{kind="continuation_failure"}) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Runtime Continuation failed"
+          description: "A durable Runtime Continuation failure was recorded in the rolling window."

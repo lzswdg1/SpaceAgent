@@ -1,0 +1,44 @@
+SpaceAgent public source snapshot
+format_version=1
+tracked_files_only=true
+git_history_included=false
+private_source_commit_embedded=false
+asset_provenance_documented=true
+blocked_new_repository_url=false
+public_repository=https://github.com/lzswdg1/SpaceAgent
+
+[excluded_directories]
+output/
+copy/
+.run/
+testapikey/
+.aws/
+.ssh/
+backup/
+backups/
+cert/
+certs/
+certificate/
+certificates/
+secret/
+secrets/
+**/.direnv/
+**/.idea/
+**/.vscode/
+**/.kiro/
+**/.m2/
+**/.gomodcache/
+**/node_modules/
+**/dist/
+**/target/
+**/coverage/
+**/__pycache__/
+
+[excluded_file_patterns]
+.env and non-example .env.* files
+*.env, *.env.local and .envrc except *.example templates
+.npmrc, .pypirc and .netrc
+*.pem, *.key, *.p12, *.pfx, *.jks, *.keystore, *.kdbx, *.crt and *.cer
+*.dump, *.backup, *.bak, *.sql.gz, *.tar, *.tar.gz and *.tgz
+*.sqlite, *.sqlite3 and *.db
+credentials.json, *-credentials.json, service-account*.json, id_rsa and id_ed25519

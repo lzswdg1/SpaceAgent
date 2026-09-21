@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.local/contracts/platform-admin/v1/cleanup-overview.schema.json",
+  "title": "Global cleanup overview",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["pending", "claimed", "retry", "blocked", "completed", "blockers"],
+  "properties": {
+    "pending": {"type": "integer", "minimum": 0},
+    "claimed": {"type": "integer", "minimum": 0},
+    "retry": {"type": "integer", "minimum": 0},
+    "blocked": {"type": "integer", "minimum": 0},
+    "completed": {"type": "integer", "minimum": 0},
+    "blockers": {"type": "array", "maxItems": 20, "items": {"type": "object", "additionalProperties": false, "required": ["code", "count"], "properties": {"code": {"type": "string", "maxLength": 64}, "count": {"type": "integer", "minimum": 1}}}}
+  }
+}

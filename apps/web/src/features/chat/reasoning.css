@@ -1,0 +1,11 @@
+.reasoning-trace{margin:0 0 14px;border-left:1px solid var(--app-line);color:var(--app-muted)}
+.reasoning-trace>button{width:100%;min-height:34px;padding:0 10px;border:0;display:grid;grid-template-columns:8px 1fr auto;gap:9px;align-items:center;color:inherit;background:transparent;text-align:left;font-size:11px}
+.reasoning-trace>button i{width:6px;height:6px;border-radius:50%;background:var(--app-muted);box-shadow:0 0 0 0 color-mix(in srgb,var(--app-green) 45%,transparent)}
+.project-message-log .reasoning-trace>button i{width:6px;height:6px;margin:0;border-radius:50%}
+.reasoning-trace.live>button i{background:var(--app-green);animation:reasoning-pulse 1.45s ease-out infinite}
+.reasoning-trace>button b{font-size:12px;font-weight:400}
+.reasoning-trace-body{max-height:0;overflow:hidden;opacity:0;transform:translateY(-5px);transition:max-height .55s cubic-bezier(.18,.78,.18,1),opacity .28s ease,transform .38s ease}
+.reasoning-trace.open .reasoning-trace-body{max-height:460px;overflow-y:auto;opacity:1;transform:none}
+.reasoning-trace-body p{margin:0;padding:5px 14px 14px;color:var(--app-muted);font-size:12px;line-height:1.7;white-space:pre-wrap}
+@keyframes reasoning-pulse{65%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@media(prefers-reduced-motion:reduce){.reasoning-trace-body{transition-duration:.01ms!important}.reasoning-trace.live>button i{animation:none}}

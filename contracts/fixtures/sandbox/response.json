@@ -1,0 +1,18 @@
+{
+  "executionId": "exec-1",
+  "agentRunId": "run-1",
+  "toolCallId": "call-1",
+  "exitStatus": 0,
+  "status": "SUCCEEDED",
+  "stdout": "hello\n",
+  "stderr": "",
+  "artifactRefs": [],
+  "metadata": {
+    "startedAtEpochMs": 1789873200000,
+    "completedAtEpochMs": 1789873200100,
+    "wallTimeMs": 100,
+    "timedOut": false,
+    "outputBytes": 6
+  },
+  "error": null
+}

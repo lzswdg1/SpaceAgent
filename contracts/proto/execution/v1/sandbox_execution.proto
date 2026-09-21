@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package spaceagent.execution.v1;
+
+// Canonical framework-neutral contract for isolated code/tool execution.
+//
+// The sandbox-worker is an execution boundary. It never owns Project, Task,
+// Conversation, Memory, AgentRun, RunStep, or Checkpoint state.
+
+message SandboxExecutionRequest {
+  string execution_id = 1;
+  string agent_run_id = 2;
+  string tool_call_id = 3;
+  string workspace_ref = 4;
+  string task_ref = 5;
+  string tool = 6;
+  string command = 7;
+  repeated string arguments = 8;
+  int32 timeout_seconds = 9;
+  ResourcePolicy resource_policy = 10;
+  string environment = 11;
+  // Optional bounded opaque input, encoded as base64 by the Java control plane. It is injected
+  // only into the disposable child container and is never interpreted by the worker process.
+  string input_base64 = 12;
+  // Optional immutable server-managed Source snapshot mounted read-only at /source. Only the
+  // managed-snapshot-materialize tool may set it; it never names a host or client path.
+  string source_ref = 13;
+}
+
+message ResourcePolicy {
+  int32 max_output_bytes = 1;
+  int32 max_cpu_seconds = 2;
+  int64 max_memory_bytes = 3;
+  bool allow_network = 4;
+  repeated string allowed_paths = 5;
+  bool read_only_workspace = 6;
+}
+
+message SandboxExecutionResponse {
+  string execution_id = 1;
+  string agent_run_id = 2;
+  string tool_call_id = 3;
+  int32 exit_status = 4;
+  string status = 5;
+  string stdout = 6;
+  string stderr = 7;
+  repeated string artifact_refs = 8;
+  ExecutionMetadata metadata = 9;
+  string error = 10;
+}
+
+message ExecutionMetadata {
+  int64 started_at_epoch_ms = 1;
+  int64 completed_at_epoch_ms = 2;
+  int64 wall_time_ms = 3;
+  bool timed_out = 4;
+  int64 output_bytes = 5;
+  ResourceMetrics resource_metrics = 6;
+}
+
+message ResourceMetrics {
+  optional int64 cpu_usage_nanos = 1;
+  optional int64 max_observed_memory_bytes = 2;
+  optional int64 network_rx_bytes = 3;
+  optional int64 network_tx_bytes = 4;
+  optional int64 workspace_apparent_bytes = 5;
+  string coverage = 6;
+}

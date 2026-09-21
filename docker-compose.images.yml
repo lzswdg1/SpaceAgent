@@ -1,0 +1,12 @@
+# Optional reusable prebuilt-image references. No resource/feature decisions here.
+services:
+  platform-server:
+    image: ${PLATFORM_SERVER_IMAGE:?Set the prebuilt business image reference}
+  platform-admin-server:
+    image: ${PLATFORM_ADMIN_SERVER_IMAGE:?Set the prebuilt administrator image reference}
+  sandbox-worker:
+    image: ${SANDBOX_WORKER_IMAGE:?Set the prebuilt updated worker/toolchain image reference}
+  web:
+    image: ${WEB_IMAGE:?Set the prebuilt tenant web image reference}
+  admin-web:
+    image: ${ADMIN_WEB_IMAGE:?Set the prebuilt administrator web image reference}

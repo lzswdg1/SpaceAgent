@@ -1,0 +1,12 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://spaceagent.dev/contracts/multi-agent/v2/graph-result.schema.json",
+  "type":"object","additionalProperties":false,
+  "required":["contractVersion","requestId","graphSessionId","bundleHash","nextCursor","command","ephemeral"],
+  "properties":{
+    "contractVersion":{"const":"graph/v2"},"requestId":{"type":"string","minLength":1,"maxLength":200},"graphSessionId":{"type":"string","minLength":1},"bundleHash":{"type":"string","pattern":"^sha256:[0-9a-f]{64}$"},
+    "nextCursor":{"type":"object","additionalProperties":false,"required":["sequence","completedCommandIds","pendingCommandId"],"properties":{"sequence":{"type":"integer","minimum":0},"completedCommandIds":{"type":"array","maxItems":256,"items":{"type":"string","minLength":1,"maxLength":200}},"pendingCommandId":{"type":["string","null"]}}},
+    "command":{"type":"object","additionalProperties":false,"required":["commandId","kind","inputHash","payload"],"properties":{"commandId":{"type":"string","minLength":1,"maxLength":200},"kind":{"enum":["MODEL_REQUESTED","TOOL_REQUESTED","DELEGATE_SUBTASK","HANDOFF_PROPOSED","REVIEW_REQUIRED","WAIT_FOR_APPROVAL","COMPLETED"]},"inputHash":{"type":"string","pattern":"^sha256:[0-9a-f]{64}$"},"payload":{"type":"object","additionalProperties":true,"maxProperties":32}}},
+    "ephemeral":{"const":true}
+  }
+}

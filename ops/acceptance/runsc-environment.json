@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "spaceagent.runsc-environment/v1",
+  "acceptanceMilestone": "M65-PR1-U02",
+  "operatingSystem": "linux",
+  "minimumKernel": "6.1.0",
+  "architectures": ["x86_64", "aarch64"],
+  "minimumDockerEngine": "26.0.0",
+  "minimumDockerApi": "1.45",
+  "runtimeName": "runsc",
+  "runscVersion": "release-20260817.0",
+  "ociSpecVersion": "1.2.1",
+  "sandboxImageRequirement": "sha256:<64 lowercase hex>",
+  "requiredDaemonProperties": {
+    "liveRestore": true,
+    "runtimeRegistered": true
+  },
+  "acceptanceCases": [
+    "escape",
+    "resource-cpu-memory-pids",
+    "network-none-dns",
+    "exact-workspace-mount",
+    "timeout-kill",
+    "labeled-orphan-cleanup"
+  ],
+  "productSwitch": {
+    "name": "PLATFORM_PUBLIC_UNTRUSTED_CODE_ENABLED",
+    "requiredBeforeAcceptance": "false",
+    "changedByAcceptance": false
+  },
+  "evidenceRoot": ".run/runsc-acceptance"
+}

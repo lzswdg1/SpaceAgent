@@ -1,0 +1,52 @@
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required for release}
+
+  database-init:
+    environment:
+      PGPASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required for release}
+
+  admin-database-init:
+    environment:
+      PGPASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required for release}
+      ADMIN_DB_PASSWORD: ${ADMIN_DB_PASSWORD:?ADMIN_DB_PASSWORD is required for release}
+
+  platform-admin-server:
+    ports: !override
+      - "${ADMIN_BIND_ADDRESS:?ADMIN_BIND_ADDRESS is required for release}:${ADMIN_HOST_PORT:-9400}:9400"
+    environment:
+      ADMIN_RELEASE_MODE: trusted-beta
+      ADMIN_DB_PASSWORD: ${ADMIN_DB_PASSWORD:?ADMIN_DB_PASSWORD is required for release}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET:?ADMIN_JWT_SECRET is required for release}
+      ADMIN_COOKIE_SECURE: "true"
+      ADMIN_LOGIN: ${ADMIN_LOGIN:?ADMIN_LOGIN is required for release}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required for release}
+      ADMIN_PLATFORM_CLIENT_BASE_URL: ${ADMIN_PLATFORM_CLIENT_BASE_URL:?ADMIN_PLATFORM_CLIENT_BASE_URL is required for release}
+      ADMIN_PLATFORM_CLIENT_JWT_SECRET: ${SYSTEM_ADMIN_JWT_SECRET:?SYSTEM_ADMIN_JWT_SECRET is required for release}
+      ADMIN_PLATFORM_CLIENT_ALLOW_INSECURE_LOCAL: "false"
+
+  admin-web:
+    ports: !override
+      - "${ADMIN_WEB_BIND_ADDRESS:?ADMIN_WEB_BIND_ADDRESS is required for release}:${ADMIN_WEB_HOST_PORT:-5174}:80"
+
+  platform-server:
+    environment:
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required for release}
+      PLATFORM_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required for release}
+      PLATFORM_INTERNAL_TOKEN: ${INTERNAL_SERVICE_TOKEN:?INTERNAL_SERVICE_TOKEN is required for release}
+      PLATFORM_INFERENCE_MODEL_PROVIDER_ENCRYPTION_KEY: ${MODEL_PROVIDER_ENCRYPTION_KEY:?MODEL_PROVIDER_ENCRYPTION_KEY is required for release}
+      PLATFORM_TOOLING_MCP_ENCRYPTION_KEY: ${MCP_CONNECTION_ENCRYPTION_KEY:?MCP_CONNECTION_ENCRYPTION_KEY is required for release}
+      PLATFORM_KNOWLEDGE_EMBEDDING_API_KEY: ${AI_EMBEDDING_API_KEY:?AI_EMBEDDING_API_KEY is required for release}
+      PLATFORM_RELEASE_MODE: trusted-beta
+      SPACEAGENT_RELEASE_VERSION: ${SPACEAGENT_RELEASE_VERSION:?SPACEAGENT_RELEASE_VERSION is required for release}
+      PLATFORM_EXPECTED_SCHEMA_VERSION: "1098"
+      PLATFORM_USER_DELETION_ENABLED: "true"
+      PLATFORM_TRUSTED_CODE_ONLY: "true"
+      PLATFORM_PUBLIC_UNTRUSTED_CODE_ENABLED: "false"
+      PLATFORM_CHAT_AUTOMATIC_PLANNING_ENABLED: ${CHAT_AUTOMATIC_PLANNING_ENABLED:-false}
+      PLATFORM_ALLOW_INSECURE_LOCAL: "false"
+      PLATFORM_INFERENCE_EXECUTION_MODE: http
+      PLATFORM_KNOWLEDGE_EMBEDDING_MODE: http
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"

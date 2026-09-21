@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:platform_server;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  flyway:
+    enabled: false
+
+platform:
+  persistence: memory
+  inference:
+    execution-mode: noop
+    allowed-provider-hosts:
+      - example.com
+      - localhost
+      - 127.0.0.1
+    allow-local-provider-hosts: true
+  knowledge:
+    embedding-mode: deterministic

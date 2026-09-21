@@ -1,0 +1,73 @@
+name: CodeQL
+
+on:
+  push:
+    branches:
+      - main
+      - demo
+      - 'feature-*'
+      - 'feature/**'
+      - 'codex/**'
+  pull_request:
+    branches: [main, demo]
+  schedule:
+    - cron: '23 3 * * 1'
+
+permissions:
+  actions: read
+  contents: read
+  packages: read
+  security-events: write
+
+jobs:
+  analyze:
+    if: ${{ !github.event.repository.private || vars.CODEQL_ENABLED == 'true' }}
+    name: Analyze ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: java-kotlin
+            build-mode: manual
+          - language: javascript-typescript
+            build-mode: none
+          - language: go
+            build-mode: manual
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up Java 21
+        if: matrix.language == 'java-kotlin'
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          java-version: '21'
+          distribution: temurin
+
+      - name: Set up Go 1.23
+        if: matrix.language == 'go'
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: cli/go.sum
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@d8073367669608af8fbcc5f63dd0a0d52bb90cff # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Build Java
+        if: matrix.language == 'java-kotlin'
+        run: ./mvnw -DskipTests package
+
+      - name: Build Go
+        if: matrix.language == 'go'
+        working-directory: cli
+        run: go build ./...
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@d8073367669608af8fbcc5f63dd0a0d52bb90cff # v4

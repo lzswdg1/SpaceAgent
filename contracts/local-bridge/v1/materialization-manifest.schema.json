@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.dev/contracts/local-bridge/v1/materialization-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "sessionId", "requestId", "manifestSha256", "totalBytes", "fileCount", "entries"],
+  "properties": {
+    "contractVersion": {"const": "local-materialization/v1"},
+    "sessionId": {"type": "string", "minLength": 1, "maxLength": 200},
+    "requestId": {"type": "string", "minLength": 1, "maxLength": 200},
+    "manifestSha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "totalBytes": {"type": "integer", "minimum": 0},
+    "fileCount": {"type": "integer", "minimum": 0},
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["relativePath", "contentLength", "contentSha256"],
+        "properties": {
+          "relativePath": {"type": "string", "minLength": 1, "maxLength": 1024},
+          "contentLength": {"type": "integer", "minimum": 0},
+          "contentSha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+        }
+      }
+    }
+  }
+}

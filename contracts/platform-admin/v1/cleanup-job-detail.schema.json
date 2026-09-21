@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.local/contracts/platform-admin/v1/cleanup-job-detail.schema.json",
+  "title": "Global cleanup job detail",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["job", "steps"],
+  "properties": {
+    "job": {"$ref": "cleanup-job-page.schema.json#/$defs/job"},
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {"$ref": "#/$defs/step"}
+    }
+  },
+  "$defs": {
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stepKey", "sequence", "state", "attempt", "createdAt", "updatedAt"],
+      "properties": {
+        "stepKey": {"type": "string", "maxLength": 80},
+        "sequence": {"type": "integer", "minimum": 100},
+        "state": {"enum": ["PENDING", "COMPLETED"]},
+        "attempt": {"type": "integer", "minimum": 0},
+        "lastErrorCode": {"type": ["string", "null"], "maxLength": 64},
+        "lastErrorSummary": {"type": ["string", "null"], "maxLength": 500},
+        "createdAt": {"type": "string", "format": "date-time"},
+        "updatedAt": {"type": "string", "format": "date-time"},
+        "completedAt": {"type": ["string", "null"], "format": "date-time"}
+      }
+    }
+  }
+}

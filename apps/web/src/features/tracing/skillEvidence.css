@@ -1,0 +1,5 @@
+.trace-skill-evidence{padding:16px;border-bottom:1px solid var(--app-line);font-size:12px;min-width:0}
+.trace-skill-evidence header{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.trace-skill-evidence button{border:1px solid var(--app-line);background:var(--app-card);color:var(--app-text);border-radius:7px;padding:6px 10px}
+.trace-skill-evidence p,.trace-skill-evidence time,.trace-skill-evidence small{color:var(--app-muted);line-height:1.6}
+.trace-skill-evidence small{display:block;overflow-wrap:anywhere}.trace-skill-evidence code{overflow-wrap:anywhere}.trace-skill-evidence ul{padding-left:16px}

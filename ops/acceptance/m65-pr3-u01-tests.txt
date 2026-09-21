@@ -1,0 +1,16 @@
+# M65-PR3-U01 deterministic production-entry selection
+PlatformAgentHttpTest
+PlatformAgentVersionPostgresTest
+AgentVersionReviewApplicationServiceTest
+RuntimeToolExecutionApplicationServiceTest
+AgentMcpBindingValidationTest
+PlatformLocalProjectMaterializationHttpControllerTest
+LocalProjectMaterializationApplicationServiceTest
+LocalProjectMaterializationValidityTest
+ProjectLocalMaterializationSessionRepositoryTest
+
+# Required assertions
+# - ordinary Agent writes never select an unreviewed current version
+# - exact pinned MCP evidence is checked before descriptor/ledger/effect
+# - chunk body is streamed with declared/header/actual 8 MiB bounds
+# - revoked/substituted Bridge and expired Session fail before byte effects

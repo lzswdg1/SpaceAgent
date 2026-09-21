@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.local/contracts/platform-admin/v1/user-cleanup-job.schema.json",
+  "title": "Durable User cleanup job projection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["job", "steps"],
+  "properties": {
+    "job": {"$ref": "#/$defs/job"},
+    "steps": {
+      "type": "array",
+      "minItems": 15,
+      "maxItems": 15,
+      "items": {"$ref": "#/$defs/step"}
+    }
+  },
+  "$defs": {
+    "job": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["userId", "commandId", "requestedBy", "state", "retentionNotBefore", "nextAttemptAt", "attempt", "maxAttempts", "fencingToken", "revision", "createdAt", "updatedAt"],
+      "properties": {
+        "userId": {"type": "string", "maxLength": 36},
+        "commandId": {"type": "string", "format": "uuid"},
+        "requestedBy": {"type": "string", "format": "uuid"},
+        "state": {"enum": ["PENDING", "CLAIMED", "RETRY", "BLOCKED", "COMPLETED"]},
+        "retentionNotBefore": {"type": "string", "format": "date-time"},
+        "nextAttemptAt": {"type": "string", "format": "date-time"},
+        "attempt": {"type": "integer", "minimum": 0},
+        "maxAttempts": {"type": "integer", "minimum": 1, "maximum": 100},
+        "leaseOwner": {"type": ["string", "null"], "maxLength": 160},
+        "leaseToken": {"type": ["string", "null"], "format": "uuid"},
+        "fencingToken": {"type": "integer", "minimum": 0},
+        "leaseUntil": {"type": ["string", "null"], "format": "date-time"},
+        "lastErrorCode": {"type": ["string", "null"], "maxLength": 64},
+        "lastErrorSummary": {"type": ["string", "null"], "maxLength": 500},
+        "revision": {"type": "integer", "minimum": 0},
+        "createdAt": {"type": "string", "format": "date-time"},
+        "updatedAt": {"type": "string", "format": "date-time"},
+        "completedAt": {"type": ["string", "null"], "format": "date-time"}
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["userId", "stepKey", "sequence", "state", "attempt", "createdAt", "updatedAt"],
+      "properties": {
+        "userId": {"type": "string", "maxLength": 36},
+        "stepKey": {"type": "string", "maxLength": 80},
+        "sequence": {"type": "integer", "minimum": 100},
+        "state": {"enum": ["PENDING", "COMPLETED"]},
+        "attempt": {"type": "integer", "minimum": 0},
+        "lastErrorCode": {"type": ["string", "null"], "maxLength": 64},
+        "lastErrorSummary": {"type": ["string", "null"], "maxLength": 500},
+        "createdAt": {"type": "string", "format": "date-time"},
+        "updatedAt": {"type": "string", "format": "date-time"},
+        "completedAt": {"type": ["string", "null"], "format": "date-time"}
+      }
+    }
+  }
+}

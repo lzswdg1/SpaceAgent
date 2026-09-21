@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.local/contracts/platform-admin/v1/user-resource-overview.schema.json",
+  "title": "User resource overview",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["modelPools", "projects", "tasks", "workspaces", "conversations", "mcpConnections", "knowledgeDocuments", "memories", "automations", "runs", "modelEffects", "toolEffects"],
+  "properties": {
+    "modelPools": {"type": "integer", "minimum": 0},
+    "projects": {"type": "integer", "minimum": 0},
+    "tasks": {"type": "integer", "minimum": 0},
+    "workspaces": {"type": "integer", "minimum": 0},
+    "conversations": {"type": "integer", "minimum": 0},
+    "mcpConnections": {"type": "integer", "minimum": 0},
+    "knowledgeDocuments": {"type": "integer", "minimum": 0},
+    "memories": {"type": "integer", "minimum": 0},
+    "automations": {"type": "integer", "minimum": 0},
+    "runs": {"type": "integer", "minimum": 0},
+    "modelEffects": {"type": "integer", "minimum": 0},
+    "toolEffects": {"type": "integer", "minimum": 0}
+  }
+}

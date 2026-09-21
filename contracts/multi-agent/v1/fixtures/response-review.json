@@ -1,0 +1,14 @@
+{
+  "contractVersion": "multi-agent/v1",
+  "requestId": "ma-req-review",
+  "agentRunId": "run-review",
+  "command": {
+    "kind": "REVIEW_REQUIRED",
+    "payload": {
+      "taskPlanId": "plan-1",
+      "planStepId": "step-1",
+      "artifactIds": ["artifact-patch", "artifact-commit"]
+    }
+  },
+  "orchestration": { "route": "review", "ephemeral": true }
+}

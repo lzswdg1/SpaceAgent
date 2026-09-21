@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spaceagent.local/contracts/platform-admin/v1/command-page.schema.json",
+  "title": "Admin command evidence page",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "page", "pageSize", "total", "generatedAt"],
+  "properties": {
+    "items": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/command"}},
+    "page": {"type": "integer", "minimum": 0},
+    "pageSize": {"type": "integer", "minimum": 1, "maximum": 100},
+    "total": {"type": "integer", "minimum": 0},
+    "generatedAt": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "operation", "state", "createdBy", "createdAt", "updatedAt"],
+      "properties": {
+        "id": {"type": "string", "format": "uuid"},
+        "operation": {"type": "string", "maxLength": 80},
+        "targetType": {"type": ["string", "null"], "maxLength": 80},
+        "targetId": {"type": ["string", "null"], "maxLength": 160},
+        "state": {"enum": ["RECEIVED", "DISPATCHING", "ACCEPTED", "SUCCEEDED", "FAILED", "UNKNOWN"]},
+        "platformReference": {"type": ["string", "null"], "maxLength": 160},
+        "safeErrorCode": {"type": ["string", "null"], "maxLength": 64},
+        "createdBy": {"type": "string", "format": "uuid"},
+        "createdAt": {"type": "string", "format": "date-time"},
+        "updatedAt": {"type": "string", "format": "date-time"},
+        "completedAt": {"type": ["string", "null"], "format": "date-time"}
+      }
+    }
+  }
+}

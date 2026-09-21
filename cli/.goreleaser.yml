@@ -1,0 +1,50 @@
+version: 2
+project_name: spaceagent
+
+builds:
+  - id: spaceagent-cli
+    main: .
+    binary: spaceagent
+    ldflags:
+      - >-
+        -s -w
+        -X github.com/lzswdg1/SpaceAgent/cli/cmd.version={{.Version}}
+        -X github.com/lzswdg1/SpaceAgent/cli/cmd.commit={{.ShortCommit}}
+        -X github.com/lzswdg1/SpaceAgent/cli/cmd.date={{.Date}}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - formats:
+      - tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - src: ../LICENSE
+        dst: LICENSE
+      - src: ../THIRD_PARTY_NOTICES.md
+        dst: THIRD_PARTY_NOTICES.md
+      - src: ../ASSET-PROVENANCE.md
+        dst: ASSET-PROVENANCE.md
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'

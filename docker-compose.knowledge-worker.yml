@@ -1,0 +1,32 @@
+# Combine with docker-compose.yml and the Milvus/parser overlays under the SAME Compose project.
+# Same image and Knowledge-owned shared POSIX volume; never mount the Docker socket.
+services:
+  knowledge-worker:
+    extends:
+      file: docker-compose.yml
+      service: platform-server
+    container_name: !reset null
+    ports: !reset []
+    volumes: !override
+      - platform-knowledge-index:/data/knowledge-index
+    profiles: [knowledge-worker]
+    environment:
+      PLATFORM_RUNTIME_ROLE: knowledge-worker
+      SPRING_FLYWAY_ENABLED: "false"
+      PLATFORM_KNOWLEDGE_INDEX_WORKER_ENABLED: "true"
+      PLATFORM_KNOWLEDGE_INDEX_INTAKE_ENABLED: "false"
+      PLATFORM_KNOWLEDGE_VECTOR_STORE_MODE: ${PLATFORM_KNOWLEDGE_VECTOR_STORE_MODE:-none}
+      PLATFORM_KNOWLEDGE_MILVUS_URI: ${PLATFORM_KNOWLEDGE_MILVUS_URI:-}
+      PLATFORM_KNOWLEDGE_MILVUS_TOKEN: ${PLATFORM_KNOWLEDGE_MILVUS_TOKEN:-}
+      PLATFORM_KNOWLEDGE_MILVUS_ALLOW_INSECURE_LOCAL: ${PLATFORM_KNOWLEDGE_MILVUS_ALLOW_INSECURE_LOCAL:-false}
+      PLATFORM_KNOWLEDGE_PARSER_URI: http://rag-parser-gateway:8080
+      PLATFORM_KNOWLEDGE_PARSER_ALLOW_PRIVATE_HTTP: "true"
+      PLATFORM_KNOWLEDGE_LEGACY_MODE: disabled
+      PLATFORM_KNOWLEDGE_EMBEDDING_API_KEY: ""
+      JAVA_TOOL_OPTIONS: -Xms128m -Xmx768m -XX:ActiveProcessorCount=2
+    mem_limit: 1200m
+    cpus: 2
+    pids_limit: 128
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped

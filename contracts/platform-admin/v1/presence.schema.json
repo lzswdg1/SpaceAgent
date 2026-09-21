@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Administrator heartbeat presence observation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["onlineUsers", "onlineSessions", "observedSessionCount", "coverage", "definition", "leaseSeconds", "measuredAt"],
+  "properties": {
+    "onlineUsers": {"type": ["integer", "null"], "minimum": 0},
+    "onlineSessions": {"type": ["integer", "null"], "minimum": 0},
+    "observedSessionCount": {"type": "integer", "minimum": 0},
+    "coverage": {"enum": ["NO_CLIENT_HEARTBEATS", "HEARTBEAT_CLIENTS_ONLY"]},
+    "definition": {"type": "string"},
+    "leaseSeconds": {"const": 90},
+    "measuredAt": {"type": "string", "format": "date-time"}
+  }
+}

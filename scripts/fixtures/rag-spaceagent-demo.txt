@@ -1,0 +1,4 @@
+SpaceAgent retrieval regression fixture.
+
+The verification phrase is: orbital-cinnamon-7429.
+This document exists to verify real file upload, text parsing, chunking, embedding persistence, TopK retrieval, and citation metadata through the platform Knowledge API.

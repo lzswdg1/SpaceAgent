@@ -1,0 +1,3 @@
+package com.spaceagent.platform.runtime.infrastructure.memory;
+import com.spaceagent.platform.runtime.domain.*;import java.util.*;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;import org.springframework.stereotype.Repository;
+@Repository @ConditionalOnProperty(prefix="platform",name="persistence",havingValue="memory",matchIfMissing=true) public class InMemorySupervisorRunPolicyRepository implements SupervisorRunPolicyRepository{private final Map<String,SupervisorRunPolicy> values=new HashMap<>();public synchronized Optional<SupervisorRunPolicy> find(String id){return Optional.ofNullable(values.get(id));}public synchronized boolean insertIfAbsent(SupervisorRunPolicy p){return values.putIfAbsent(p.agentRunId(),p)==null;}}

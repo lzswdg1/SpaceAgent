@@ -1,0 +1,6 @@
+package com.spaceagent.platform.project.infrastructure.memory;
+import com.spaceagent.platform.project.domain.*;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;import org.springframework.stereotype.Repository;import java.util.*;import java.util.concurrent.ConcurrentHashMap;
+@Repository @ConditionalOnProperty(prefix="platform",name="persistence",havingValue="memory",matchIfMissing=true)
+public class InMemoryProjectBlueprintRepository implements ProjectBlueprintRepository{
+ private final Map<String,ProjectBlueprint> values=new ConcurrentHashMap<>();public int nextVersion(String p){return values.values().stream().filter(v->v.projectId().equals(p)).mapToInt(ProjectBlueprint::versionNumber).max().orElse(0)+1;}public void save(ProjectBlueprint v){values.put(v.id(),v);}public Optional<ProjectBlueprint> findById(String id){return Optional.ofNullable(values.get(id));}public List<ProjectBlueprint> findByProjectId(String p){return values.values().stream().filter(v->v.projectId().equals(p)).sorted(Comparator.comparingInt(ProjectBlueprint::versionNumber)).toList();}public Optional<ProjectBlueprint> findConfirmed(String p){return values.values().stream().filter(v->v.projectId().equals(p)&&v.status()==ProjectBlueprintStatus.CONFIRMED).findFirst();}
+}

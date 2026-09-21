@@ -18,7 +18,7 @@ ARG VITE_USER_WEB_URL=""
 ENV VITE_USER_WEB_URL=$VITE_USER_WEB_URL
 RUN npm run build:admin
 
-FROM nginx:1.27-alpine
+FROM nginx:1.31-alpine
 LABEL org.opencontainers.image.licenses="MIT"
 COPY LICENSE /licenses/SpaceAgent-MIT.txt
 COPY THIRD_PARTY_NOTICES.md /licenses/THIRD_PARTY_NOTICES.md

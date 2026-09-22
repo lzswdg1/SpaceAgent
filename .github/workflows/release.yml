@@ -49,6 +49,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
+      - name: Normalize GHCR image namespace
+        id: image_namespace
+        shell: bash
+        run: |
+          repository="$(printf '%s' "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')"
+          echo "prefix=ghcr.io/$repository" >> "$GITHUB_OUTPUT"
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
@@ -70,8 +77,8 @@ jobs:
           file: ${{ matrix.dockerfile }}
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ steps.version.outputs.VERSION }}
-            ghcr.io/${{ github.repository }}/${{ matrix.service }}:latest
+            ${{ steps.image_namespace.outputs.prefix }}/${{ matrix.service }}:${{ steps.version.outputs.VERSION }}
+            ${{ steps.image_namespace.outputs.prefix }}/${{ matrix.service }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: mode=max
@@ -80,7 +87,7 @@ jobs:
       - name: Generate image SBOM artifact
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
-          image: ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ steps.version.outputs.VERSION }}
+          image: ${{ steps.image_namespace.outputs.prefix }}/${{ matrix.service }}:${{ steps.version.outputs.VERSION }}
           format: spdx-json
           syft-version: v1.40.0
           artifact-name: spaceagent-${{ matrix.service }}-${{ steps.version.outputs.VERSION }}.spdx.json

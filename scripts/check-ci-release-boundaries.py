@@ -43,6 +43,12 @@ def main() -> None:
     require(ci.count("gitleaks\" git --redact=100") == 1
             and ci.count("gitleaks\" dir --redact=100") == 1,
             "CI must scan Git range and current tree with full redaction")
+    for workflow_name, workflow in (("CI", ci), ("Release", release)):
+        require("tr '[:upper:]' '[:lower:]'" in workflow
+                and 'prefix=ghcr.io/$repository' in workflow,
+                f"{workflow_name} must lowercase the GHCR repository namespace")
+        require("ghcr.io/${{ github.repository }}" not in workflow,
+                f"{workflow_name} must not use the mixed-case repository name in GHCR tags")
 
     require("uses: ./.github/workflows/ci.yml" in release,
             "Release must reuse the complete CI gate before images")

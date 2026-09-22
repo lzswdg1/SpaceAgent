@@ -201,10 +201,6 @@ python3 -m venv .venv
 - [アセットの出所](ASSET-PROVENANCE.md)
 - [公開ソース Manifest](PUBLIC-SOURCE-MANIFEST.txt)
 
-## オープンソースとしての状態
-
-このリポジトリは、非公開 Git 履歴を含まないソーススナップショットを最初の公開 Commit として開始します。`copy/browser`、実環境ファイル、認証情報、データベース、Backup、生成済み Build Output は含まれていません。公開前に、GitHub の Private Vulnerability Reporting、Branch Protection、Required Checks、CODEOWNERS、DCO、署名・Attestation 権限を有効にしてください。
-
 ## コントリビューションと脆弱性報告
 
 コードを送る前に [CONTRIBUTING.md](CONTRIBUTING.md) を読み、DCO の `Signed-off-by` 行を付けてください。脆弱性を公開 Issue として報告しないでください。[SECURITY.md](SECURITY.md) に従い、GitHub Private Vulnerability Reporting を利用してください。

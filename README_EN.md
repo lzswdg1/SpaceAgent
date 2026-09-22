@@ -201,10 +201,6 @@ The full CI gate also runs Gitleaks, public-source export tests, Compose validat
 - [Asset Provenance](ASSET-PROVENANCE.md)
 - [Public Source Manifest](PUBLIC-SOURCE-MANIFEST.txt)
 
-## Open-source status
-
-This repository starts from a source snapshot with no private Git history. `copy/browser`, real environment files, credentials, databases, backups, and generated build output are not included. Before public launch, maintainers should enable GitHub private vulnerability reporting, branch protection, required checks, CODEOWNERS, DCO enforcement, and release signing/attestation permissions.
-
 ## Contributing and security reports
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) and use a DCO `Signed-off-by` line for contributions. Do not open a public issue for a vulnerability; follow [SECURITY.md](SECURITY.md) and use GitHub Private Vulnerability Reporting.

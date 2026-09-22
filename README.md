@@ -201,10 +201,6 @@ python3 -m venv .venv
 - [资产来源](ASSET-PROVENANCE.md)
 - [公开源码清单](PUBLIC-SOURCE-MANIFEST.txt)
 
-## 开源状态
-
-本仓库以无私有 Git 历史的源码快照作为首次公开提交。`copy/browser`、真实环境文件、凭据、数据库、备份和构建产物不在公开目录中。发布前仍应在 GitHub 启用私密漏洞报告、Branch Protection、Required Checks、CODEOWNERS、DCO 与签名/Attestation 权限。
-
 ## 贡献与安全报告
 
 提交代码前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)，并使用 DCO `Signed-off-by`。安全漏洞不要提交公开 Issue，请按照 [SECURITY.md](SECURITY.md) 使用 GitHub Private Vulnerability Reporting。
